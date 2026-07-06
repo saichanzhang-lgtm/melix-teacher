@@ -1,0 +1,19 @@
+{
+  "name": "beijing-english-tutor",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node web/server.js",
+    "dev": "node web/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "docx": "^9.7.1",
+    "nat-upnp": "^1.1.1",
+    "sharp": "^0.35.3"
+  }
+}

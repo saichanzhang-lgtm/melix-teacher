@@ -87,7 +87,12 @@ function sendCode(){
   fetch('/api/auth/send-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:phone})})
     .then(function(r){return r.json()})
     .then(function(d){
-      if(d.success){showOk(d.message);countdown=60;btn.textContent=countdown+'s';timer=setInterval(function(){countdown--;if(countdown<=0){clearInterval(timer);btn.textContent='发送验证码';btn.disabled=false}else{btn.textContent=countdown+'s'}},1000)}
+      if(d.success){
+        // Auto-fill code if returned in message
+        var codeMatch=d.message.match(/\d{6}/);
+        if(codeMatch){document.getElementById('code').value=codeMatch[0];showOk('验证码: '+codeMatch[0]+' (已自动填入)')}
+        else{showOk(d.message)}
+        countdown=60;btn.textContent=countdown+'s';timer=setInterval(function(){countdown--;if(countdown<=0){clearInterval(timer);btn.textContent='发送验证码';btn.disabled=false}else{btn.textContent=countdown+'s'}},1000)}
       else{showErr(d.error);btn.disabled=false;btn.textContent='发送验证码'}
     }).catch(function(e){showErr('网络错误');btn.disabled=false;btn.textContent='发送验证码'});
 }
