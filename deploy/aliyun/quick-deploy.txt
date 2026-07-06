@@ -1,0 +1,46 @@
+╔══════════════════════════════════════════════════════╗
+║   北京K12英语AI家教 — 阿里云快速部署命令卡片        ║
+╚══════════════════════════════════════════════════════╝
+
+【准备】 购买阿里云轻量服务器
+  1. 打开 https://swas.console.aliyun.com
+  2. 创建服务器: Ubuntu 22.04, 2核2G/4G, 北京可用区
+  3. 记录: 公网IP + root密码
+
+【本地上传】
+  scp -r D:/beijing-english-tutor/deploy/aliyun root@你的IP:/root/
+  scp -r D:/beijing-english-tutor/web root@你的IP:/root/aliyun/../web/
+  scp -r D:/beijing-english-tutor/references root@你的IP:/root/aliyun/../../
+  scp D:/CLAUDE.md root@你的IP:/root/aliyun/../../
+
+  或更简单——上传整个项目:
+  scp -r D:/beijing-english-tutor root@你的IP:/root/
+
+【服务器端】
+  ssh root@你的IP
+  cd /root/aliyun  (或 /root/beijing-english-tutor/deploy/aliyun)
+  chmod +x setup.sh
+  ./setup.sh
+
+【安全组配置】（重要！）
+  打开 https://ecs.console.aliyun.com
+  → 安全组 → 配置规则 → 入方向
+  添加:
+    端口 80  (HTTP)  来源 0.0.0.0/0
+    端口 443 (HTTPS) 来源 0.0.0.0/0
+
+【验证】
+  浏览器打开: http://你的公网IP
+  登录页面:   http://你的公网IP/login.html
+  验证码:     123456
+
+【常用运维命令】
+  ssh root@你的IP
+
+  docker-compose -f /opt/beijing-tutor/docker-compose.yml logs -f   # 查看日志
+  docker-compose -f /opt/beijing-tutor/docker-compose.yml restart   # 重启
+  docker-compose -f /opt/beijing-tutor/docker-compose.yml down      # 停止
+  docker-compose -f /opt/beijing-tutor/docker-compose.yml up -d     # 启动
+
+  systemctl status beijing-tutor  # 查看服务状态
+  journalctl -u beijing-tutor -f  # 查看系统日志

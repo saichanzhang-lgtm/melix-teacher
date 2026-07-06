@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Melix Teacher — AI Teaching Workspace</title>
+<style>
+:root{--pri:#7A6CF5;--pri-light:#F0ECFD;--pri-dark:#5A4BD4;--pri-hover:#F7F4FF;--pri-active-bg:#EDE9FD;--pri-active-border:#CFC5F8;--pri-active-text:#5A4BD4;--accent:#47C4B8;--accent-light:#EDFAF8;--bg:#F8F8FA;--surface:#FFFFFF;--text:#1F2430;--text2:#8B8FA0;--border:#EAEBF0;--shadow:0 1px 2px rgba(0,0,0,.04);--radius:12px;--radius-sm:8px;--input-bg:#F5F5F7;--success:#47C4B8;--nav-w:300px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:17px}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:var(--nav-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;height:100vh;overflow:hidden}
+.sb-header{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-logo-img{flex-shrink:0;border-radius:6px}
+.sb-title{font-size:0.82rem;font-weight:700;line-height:1.2}
+.sb-sub{font-size:0.65rem;color:var(--text2)}
+.sb-scroll{flex:1;overflow-y:auto;overflow-x:hidden}
+.sb-sec{padding:8px 0}
+.sb-sec-hd{display:flex;align-items:center;justify-content:space-between;padding:6px 16px 4px}
+.sb-sec-lbl{font-size:0.62rem;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);font-weight:600}
+.sb-sec-btn{font-size:0.7rem;background:none;border:none;color:var(--pri);cursor:pointer;padding:2px 6px;border-radius:4px}
+.sb-sec-btn:hover{background:var(--pri-hover)}
+
+/* Student card */
+.sb-card{margin:4px 10px;padding:10px 12px;background:var(--input-bg);border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.sb-card:hover{border-color:var(--pri-active-border);background:var(--pri-hover)}
+.sb-card-top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.sb-card-av{width:30px;height:30px;border-radius:50%;background:var(--pri-light);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.sb-card-name{font-size:.82rem;font-weight:600}
+.sb-card-meta{font-size:.65rem;color:var(--text2);line-height:1.4}
+.sb-card-prog{display:flex;align-items:center;gap:6px;margin-top:4px}
+.sb-prog-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.sb-prog-fill{height:100%;background:var(--pri);border-radius:2px}
+.sb-prog-lbl{font-size:.6rem;color:var(--text2);white-space:nowrap}
+.sb-empty{padding:8px 14px;font-size:.72rem;color:var(--text2);text-align:center}
+
+/* Agent items */
+.sb-agent{display:flex;align-items:center;gap:10px;width:100%;padding:9px 16px;border:none;border-left:3px solid transparent;background:transparent;cursor:pointer;font-size:.8rem;color:var(--text);transition:all .15s;font-family:inherit;text-align:left}
+.sb-agent:hover{background:var(--pri-hover);color:var(--pri-dark)}
+.sb-agent.active{background:var(--pri-active-bg);border-left-color:var(--pri);color:var(--pri-active-text);font-weight:600}
+.sb-agent-ic{font-size:1.1rem;width:24px;text-align:center;flex-shrink:0}
+.sb-agent-lb{flex:1;line-height:1.3}
+.sb-agent-bg{font-size:.6rem;padding:2px 6px;border-radius:8px;background:var(--pri-light);color:var(--pri-dark);white-space:nowrap}
+
+/* Conv items */
+.sb-conv{display:flex;align-items:center;gap:8px;padding:6px 16px 6px 20px;cursor:pointer;font-size:.76rem;color:var(--text);transition:all .12s;border:none;background:none;width:100%;text-align:left;line-height:1.3;font-family:inherit}
+.sb-conv:hover{background:var(--pri-hover)}
+.sb-conv.active{background:var(--pri-active-bg);color:var(--pri-active-text)}
+.sb-conv-ic{font-size:.7rem;flex-shrink:0;opacity:.6}
+.sb-conv-tl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-conv-tm{font-size:.6rem;color:var(--text2);flex-shrink:0}
+.sb-conv-act{display:none;gap:2px}
+.sb-conv:hover .sb-conv-act{display:flex}
+.sb-conv-act-btn{font-size:.65rem;background:none;border:none;cursor:pointer;padding:1px 4px;border-radius:3px;color:var(--text2)}
+.sb-conv-act-btn:hover{background:var(--border)}
+
+/* Settings */
+.sb-set{display:flex;align-items:center;gap:8px;width:100%;padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:.72rem;color:var(--text2);transition:all .12s;font-family:inherit;text-align:left}
+.sb-set:hover{background:var(--pri-hover);color:var(--text)}
+.sb-set-ic{font-size:.85rem;width:20px;text-align:center;flex-shrink:0}
+
+/* Resizer */
+.sb-resizer{width:4px;cursor:col-resize;background:transparent;flex-shrink:0;position:relative;z-index:10;transition:background .15s}
+.sb-resizer:hover,.sb-resizer.dragging{background:var(--pri)}
+.sb-resizer::after{content:'';position:absolute;top:0;bottom:0;left:-3px;right:-3px}
+
+/* Main AI panel */
+.main-panel{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg);height:100vh}
+.mp-header{padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.mp-agent-badge{font-size:.85rem;font-weight:600;padding:4px 12px;border-radius:20px;background:var(--pri-active-bg);color:var(--pri-active-text);white-space:nowrap}
+.mp-info{font-size:.75rem;color:var(--text2);white-space:nowrap}
+.mp-actions{margin-left:auto;display:flex;gap:6px}
+.mp-btn{padding:5px 12px;border:1px solid var(--border);border-radius:16px;background:var(--surface);cursor:pointer;font-size:.78rem;font-family:inherit;transition:all .15s;white-space:nowrap;color:var(--text)}
+.mp-btn:hover{background:#EDF5EE;border-color:var(--success);color:var(--success)}
+
+/* Config */
+.mp-config{background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow:hidden;transition:max-height .3s}
+.mp-config-inner{padding:12px 16px}
+.cfg-title{font-size:.94rem;font-weight:700;margin-bottom:8px}
+.cfg-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.cfg-sel{padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.85rem;background:var(--surface);font-family:inherit;cursor:pointer;color:var(--text)}
+.cfg-btn{padding:8px 18px;border:none;border-radius:var(--radius-sm);background:var(--pri);color:#fff;font-size:.85rem;cursor:pointer;font-family:inherit;transition:all .15s}
+.cfg-btn:hover{filter:brightness(1.08)}
+.gram-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:5px}
+.gram-cat{font-size:.72rem;font-weight:700;color:var(--text2);grid-column:1/-1;margin-top:6px}
+.gram-item{padding:7px 4px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.8rem;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface);user-select:none}
+.gram-item:hover{background:var(--pri-hover);border-color:var(--pri-active-border)}
+.gram-item.sel{background:var(--pri-active-bg);color:var(--pri-active-text);border-color:var(--pri-active-border)}
+
+/* Messages */
+.mp-messages{flex:1 1 0;overflow-y:auto;overflow-x:hidden;padding:16px 24px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.mp-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--text2);padding:30px}
+.mp-empty-ic{font-size:2.5rem;margin-bottom:10px}
+.mp-empty h3{font-size:1.1rem;color:var(--text);margin-bottom:6px}
+.mp-empty p{font-size:.88rem}
+
+/* Msg bubbles */
+.msg{display:flex;gap:8px;max-width:90%}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+.msg.asst{align-self:flex-start}
+.msg-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.msg.user .msg-av{background:var(--pri-light)}
+.msg.asst .msg-av{background:var(--accent-light)}
+.msg-content{background:var(--surface);padding:10px 16px;border-radius:var(--radius);box-shadow:var(--shadow);line-height:1.7;font-size:.88rem;word-break:break-word;border:1px solid var(--border)}
+.msg.user .msg-content{background:var(--pri-dark);color:#fff;border-color:var(--pri-dark)}
+.msg-content h2{font-size:1rem;margin:6px 0 3px}
+.msg-content h3{font-size:.9rem;margin:5px 0 3px}
+.msg-content p{margin-bottom:4px}.msg-content p:last-child{margin-bottom:0}
+.msg-content ul,.msg-content ol{padding-left:18px;margin:3px 0}
+.msg-content table,.md-table{border-collapse:collapse;width:100%;margin:10px 0;font-size:.82rem;display:table;overflow-x:auto}
+.msg-content th,.md-table th{background:var(--pri-light);color:var(--pri-dark);font-weight:700;padding:8px 10px;text-align:left;border:1px solid var(--pri-active-border);white-space:nowrap}
+.msg-content td,.md-table td{padding:7px 10px;text-align:left;border:1px solid var(--border);vertical-align:middle;word-break:keep-all;overflow-wrap:break-word}
+.msg-content tbody tr:nth-child(even),.md-table tbody tr:nth-child(even){background:var(--input-bg)}
+.msg-content tbody tr:hover,.md-table tbody tr:hover{background:var(--pri-hover)}
+.msg-content code{background:var(--input-bg);padding:1px 4px;border-radius:3px;font-size:.8rem}
+.msg-content pre{background:var(--pri-hover);padding:10px;border-radius:var(--radius-sm);overflow-x:auto;margin:4px 0;font-size:.8rem;line-height:1.4}
+.msg-content strong{color:var(--pri-dark)}
+.msg.user .msg-content strong{color:#F5EDE9}
+.msg-content blockquote{border-left:2px solid var(--pri);padding-left:8px;margin:4px 0;color:var(--text2)}
+
+/* Input */
+.mp-input-wrap{display:flex;gap:10px;padding:10px 16px;border-top:1px solid var(--border);align-items:flex-end;flex-shrink:0;background:var(--surface)}
+.mp-input-wrap textarea{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:18px;font-size:.88rem;resize:none;outline:none;font-family:inherit;background:var(--input-bg);max-height:100px;color:var(--text)}
+.mp-input-wrap textarea:focus{border-color:var(--pri)}
+.mp-send{width:38px;height:38px;border-radius:50%;border:none;background:var(--pri);color:#fff;font-size:1.2rem;cursor:pointer;flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.mp-send:hover{filter:brightness(1.1)}
+.mp-send:disabled{opacity:.4;cursor:not-allowed}
+
+/* Debug bar */
+.debug-bar{display:flex;align-items:center;gap:8px;padding:3px 12px;background:#2D2A27;color:#fff;font-size:.7rem;font-family:monospace}
+.debug-dot{width:7px;height:7px;border-radius:50%;background:#FFC107;flex-shrink:0}
+.debug-dot.ok{background:#4CAF50}.debug-dot.err{background:#F44336}
+
+/* Loading dots */
+.load-dots{display:flex;gap:3px;padding:3px 0}
+.load-dots span{width:5px;height:5px;border-radius:50%;background:var(--text2);animation:ld-bounce 1.4s infinite ease-in-out both}
+.load-dots span:nth-child(1){animation-delay:-.32s}.load-dots span:nth-child(2){animation-delay:-.16s}
+@keyframes ld-bounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
+
+@media(max-width:768px){:root{--nav-w:100vw}.sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;transform:translateX(-100%);transition:transform .25s}.sidebar.open{transform:translateX(0)}.sb-resizer{display:none}}
+</style>
+</head>
+<body>
+
+<div class="debug-bar">
+  <span class="debug-dot" id="dbgDot"></span>
+  <span id="dbgMsg">启动中...</span>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-header">
+      <img class="sb-logo-img" src="/logo.png" width="36" height="36" alt="Melix">
+      <div><div class="sb-title">Melix Teacher</div><div class="sb-sub">AI Teaching Workspace</div></div>
+    </div>
+    <div class="sb-scroll" id="sbScroll">
+      <div class="sb-sec">
+        <div class="sb-sec-hd"><span class="sb-sec-lbl">🎯 当前学生</span><button class="sb-sec-btn" onclick="cycleStudent()">切换</button></div>
+        <div class="sb-card" id="sbCard" onclick="cycleStudent()"><div class="sb-empty">点击选择学生</div></div>
+      </div>
+      <div class="sb-sec">
+        <div class="sb-sec-hd"><span class="sb-sec-lbl">📚 AI 工作台</span></div>
+        <button class="sb-agent active" data-agent="teaching" onclick="switchAgent('teaching',this)"><span class="sb-agent-ic">📚</span><span class="sb-agent-lb">教材教学</span><span class="sb-agent-bg">备课</span></button>
+        <button class="sb-agent" data-agent="grammar" onclick="switchAgent('grammar',this)"><span class="sb-agent-ic">📐</span><span class="sb-agent-lb">语法中心</span><span class="sb-agent-bg">刷题</span></button>
+        <button class="sb-agent" data-agent="exam" onclick="switchAgent('exam',this)"><span class="sb-agent-ic">📋</span><span class="sb-agent-lb">智能组卷</span><span class="sb-agent-bg">出卷</span></button>
+        <button class="sb-agent" data-agent="grade" onclick="switchAgent('grade',this)"><span class="sb-agent-ic">🔬</span><span class="sb-agent-lb">智能阅卷</span><span class="sb-agent-bg">批改</span></button>
+        <button class="sb-agent" data-agent="writing" onclick="switchAgent('writing',this)"><span class="sb-agent-ic">✍️</span><span class="sb-agent-lb">作文中心</span><span class="sb-agent-bg">写作</span></button>
+      </div>
+      <div class="sb-sec">
+        <div class="sb-sec-hd"><span class="sb-sec-lbl">💬 当前 Agent 会话</span><button class="sb-sec-btn" onclick="newConv()">➕ 新建</button></div>
+        <div id="sbConvList"><div class="sb-empty">暂无会话记录</div></div>
+      </div>
+      <div class="sb-sec">
+        <div class="sb-sec-hd"><span class="sb-sec-lbl">⚙ 设置</span></div>
+        <button class="sb-set" onclick="toggleKB()"><span class="sb-set-ic">📊</span>知识库状态</button>
+        <button class="sb-set" onclick="cycleDifficulty()"><span class="sb-set-ic">📊</span>难度：<span id="sbDiffLbl">自动</span></button>
+      </div>
+    </div>
+  </nav>
+  <div class="sb-resizer" id="sbResizer"></div>
+
+  <!-- MAIN PANEL -->
+  <div class="main-panel" id="mainPanel">
+    <div class="mp-header">
+      <span class="mp-agent-badge" id="mpAgentBadge">📚 教材教学</span>
+      <span class="mp-info" id="mpStudentInfo"></span>
+      <span class="mp-info" id="mpDiffInfo"></span>
+      <div class="mp-actions">
+        <button class="mp-btn" onclick="exportDoc('exam')">📝 试卷版</button>
+        <button class="mp-btn" onclick="exportDoc('answer')">📋 答案版</button>
+        <button class="mp-btn" onclick="exportDoc('teacher')">📘 教师版</button>
+      </div>
+    </div>
+    <div class="mp-config" id="mpConfig" style="max-height:0">
+      <div class="mp-config-inner" id="mpConfigInner"></div>
+    </div>
+    <div class="mp-messages" id="mpMessages">
+      <div class="mp-empty" id="mpEmpty">
+        <div class="mp-empty-ic">🎓</div>
+        <h3>Melix Teacher Workspace</h3>
+        <p>在左侧选择 Agent，配置参数后开始工作<br>每个 Agent 拥有独立的会话记录</p>
+      </div>
+      <div id="kbDash" style="display:none;padding:12px 16px;font-size:.8rem;line-height:1.8;background:var(--input-bg);border-radius:var(--radius)"><div id="kbContent">加载中...</div></div>
+    </div>
+    <div class="mp-input-wrap">
+      <textarea id="userInput" rows="1" placeholder="输入教学需求..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
+      <button class="mp-send" id="sendBtn" onclick="sendMsg()">➤</button>
+    </div>
+  </div>
+
+</div>
+
+<select id="studentSelect" style="display:none" onchange="updateStudent()">
+  <option value="">不限学生</option><option value="nandy">Nandy</option><option value="yiyi">熠熠</option>
+</select>
+<select id="difficultySelect" style="display:none" onchange="updateDifficulty()">
+  <option value="">自动</option><option value="小学">小学</option><option value="小升初">小升初</option><option value="初一">初一</option><option value="初二">初二</option><option value="初三">初三</option><option value="中考">中考</option><option value="高一">高一</option><option value="高二">高二</option><option value="高三">高三</option><option value="高考">高考</option>
+</select>
+
+<script>
+// ═══════════════════════════════════════
+// AUTH CHECK
+// ═══════════════════════════════════════
+(function(){
+  var token=localStorage.getItem('tutor_token');
+  if(!token){window.location.href='/login.html';return}
+  fetch('/api/auth/me',{headers:{'Authorization':'Bearer '+token}})
+    .then(function(r){if(!r.ok)throw new Error('auth');return r.json()})
+    .then(function(d){if(!d.user)throw new Error('auth');window._tutorUser=d.user})
+    .catch(function(){localStorage.removeItem('tutor_token');window.location.href='/login.html'});
+})();
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const AGENT_NAMES={teaching:'📚 教材教学',grammar:'📐 语法中心',exam:'📋 智能组卷',grade:'🔬 智能阅卷',writing:'✍️ 作文中心'};
+const GRAMMAR_DATA={
+  '词法':['名词','冠词','代词','数词','介词','连词','形容词','副词','动词','情态动词'],
+  '时态':['一般现在时','一般过去时','一般将来时','现在进行时','过去进行时','现在完成时','过去完成时'],
+  '语态':['被动语态','虚拟语气'],
+  '非谓语':['动名词','不定式','分词'],
+  '从句':['宾语从句','状语从句','定语从句','主语从句','表语从句','同位语从句'],
+  '句式':['五种基本句型','There be','强调句','倒装句','省略','反意疑问句']
+};
+const TEXTBOOK_DATA={
+  '小学':{publishers:['人教PEP','北京版','外研版','北师大版'],grades:['三年级','四年级','五年级','六年级'],semesters:['上册','下册']},
+  '初中':{publishers:['人教版','北京版','外研版','北师大版'],grades:['初一','初二','初三'],semesters:['上册','下册']},
+  '高中':{publishers:['人教2019版','北京版','外研版'],grades:['高一','高二','高三'],semesters:['必修一','必修二','必修三','选择性必修一','选择性必修二']}
+};
+
+function makeSession(){
+  const id='conv_'+Date.now();
+  return {conversations:[{id:id,title:'新会话',messages:[],createdAt:Date.now()}],activeConvId:id,chatId:Date.now()};
+}
+
+const state={
+  agent:'teaching',student:'',difficulty:'',
+  sessions:{
+    teaching:makeSession(),
+    grammar:{...makeSession(),selected:[]},
+    exam:{...makeSession(),examType:'',score:'100',duration:'60'},
+    grade:{...makeSession(),uploadedFile:null,ocrText:''},
+    writing:{...makeSession(),writeType:'',writeAction:''},
+  },
+  teaching:{stage:'',publisher:'',grade:'',semester:'',unit:''},
+  isLoading:false
+};
+
+let streamEl=null;
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function dbg(m,s){
+  const el=document.getElementById('dbgMsg'),dot=document.getElementById('dbgDot');
+  if(el)el.textContent=m;
+  if(dot){dot.className='debug-dot';if(s==='ok')dot.className='debug-dot ok';if(s==='err')dot.className='debug-dot err'}
+}
+
+function cur(){return state.sessions[state.agent]}
+function curConv(){
+  const s=cur();
+  if(!s.conversations||!s.conversations.length){s.conversations=[{id:'conv_'+Date.now(),title:'新会话',messages:[],createdAt:Date.now()}];s.activeConvId=s.conversations[0].id}
+  let c=s.conversations.find(x=>x.id===s.activeConvId);
+  if(!c){c=s.conversations[0];s.activeConvId=c.id}
+  return c;
+}
+function curMsgs(){return curConv().messages}
+
+function saveAll(){
+  try{localStorage.setItem('tutor_v4',JSON.stringify({
+    agent:state.agent,student:state.student,difficulty:state.difficulty,
+    sessions:state.sessions,teaching:state.teaching
+  }))}catch(e){}
+}
+function loadAll(){
+  try{
+    const s=localStorage.getItem('tutor_v4');
+    if(s){
+      const d=JSON.parse(s);
+      state.agent=d.agent||'teaching';state.student=d.student||'';state.difficulty=d.difficulty||'';
+      if(d.teaching)state.teaching=d.teaching;
+      if(d.sessions){
+        Object.keys(d.sessions).forEach(k=>{
+          if(state.sessions[k])Object.assign(state.sessions[k],d.sessions[k]);
+        });
+      }
+    }
+  }catch(e){localStorage.removeItem('tutor_v4')}
+  // Fixup all sessions
+  Object.values(state.sessions).forEach(s=>{
+    if(!s.conversations||!s.conversations.length)s.conversations=[{id:'conv_'+Date.now(),title:'新会话',messages:[],createdAt:Date.now()}];
+    if(!s.activeConvId||!s.conversations.find(x=>x.id===s.activeConvId))s.activeConvId=s.conversations[0].id;
+    if(!Array.isArray(s.selected))s.selected=[];
+  });
+}
+
+// ═══════════════════════════════════════
+// MARKDOWN
+// ═══════════════════════════════════════
+function md(text){
+  if(!text)return'';
+  var h=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  h=h.replace(/```(\w*)\n?([\s\S]*?)```/g,'<pre><code>$2</code></pre>');
+  h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h=h.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/\*([^*]+)\*/g,'<em>$1</em>');
+  h=h.replace(/^###\s(.+)$/gm,'<h3>$1</h3>');
+  h=h.replace(/^##\s(.+)$/gm,'<h2>$1</h2>');
+  h=h.replace(/^#\s(.+)$/gm,'<h1>$1</h1>');
+  h=h.replace(/^&gt;\s?(.*)$/gm,'<blockquote>$1</blockquote>');
+  h=h.replace(/((?:^\|.+\|\n?)+)/gm,function(m){
+    var lines=m.trim().split('\n');
+    if(lines.length<2)return m;
+    var html='<table class="md-table">';
+    lines.forEach(function(line,i){
+      var cells=line.split('|').filter(function(_,j,arr){return j>0&&j<arr.length-1}).map(function(c){return c.trim()});
+      if(i===0)html+='<thead><tr>'+cells.map(function(c){return'<th>'+c+'</th>'}).join('')+'</tr></thead>';
+      else if(i===1&&cells.every(function(c){return /^[-: ]+$/.test(c)}))html+='<tbody>';
+      else html+='<tr>'+cells.map(function(c){return'<td>'+c+'</td>'}).join('')+'</tr>';
+    });
+    html+='</tbody></table>';
+    return html;
+  });
+  h=h.replace(/^- (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/((?:<li>.*<\/li>\s*)+)/g,'<ul>$1</ul>');
+  h=h.replace(/<\/ul>\s*<ul>/g,'');
+  h=h.replace(/\n\n/g,'</p><p>');
+  h=h.replace(/\n/g,'<br>');
+  h='<p>'+h+'</p>';
+  h=h.replace(/<p>\s*<\/p>/g,'');
+  h=h.replace(/<p><table/g,'<table');
+  h=h.replace(/<\/table><\/p>/g,'</table>');
+  return h;
+}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function dbg(m,s){
+  const el=document.getElementById('dbgMsg'),dot=document.getElementById('dbgDot');
+  if(el)el.textContent=m;
+  if(dot){dot.className='debug-dot';if(s==='ok')dot.className='debug-dot ok';if(s==='err')dot.className='debug-dot err'}
+}
+
+function cur(){return state.sessions[state.agent]}
+function curConv(){
+  const s=cur();
+  if(!s.conversations||!s.conversations.length){s.conversations=[{id:'conv_'+Date.now(),title:'新会话',messages:[],createdAt:Date.now()}];s.activeConvId=s.conversations[0].id}
+  let c=s.conversations.find(x=>x.id===s.activeConvId);
+  if(!c){c=s.conversations[0];s.activeConvId=c.id}
+  return c;
+}
+function curMsgs(){return curConv().messages}
+
+function saveAll(){
+  try{localStorage.setItem('tutor_v4',JSON.stringify({
+    agent:state.agent,student:state.student,difficulty:state.difficulty,
+    sessions:state.sessions,teaching:state.teaching
+  }))}catch(e){}
+}
+function loadAll(){
+  try{
+    const s=localStorage.getItem('tutor_v4');
+    if(s){
+      const d=JSON.parse(s);
+      state.agent=d.agent||'teaching';state.student=d.student||'';state.difficulty=d.difficulty||'';
+      if(d.teaching)state.teaching=d.teaching;
+      if(d.sessions){
+        Object.keys(d.sessions).forEach(k=>{
+          if(state.sessions[k])Object.assign(state.sessions[k],d.sessions[k]);
+        });
+      }
+    }
+  }catch(e){localStorage.removeItem('tutor_v4')}
+  // Fixup all sessions
+  Object.values(state.sessions).forEach(s=>{
+    if(!s.conversations||!s.conversations.length)s.conversations=[{id:'conv_'+Date.now(),title:'新会话',messages:[],createdAt:Date.now()}];
+    if(!s.activeConvId||!s.conversations.find(x=>x.id===s.activeConvId))s.activeConvId=s.conversations[0].id;
+    if(!Array.isArray(s.selected))s.selected=[];
+  });
+}
+
+// ═══════════════════════════════════════
+// WORD EXPORT
+// ═══════════════════════════════════════
+const AI_CHATTER=[/^好的[，,。！!][\s\S]{0,60}$/gm,/^收到[，,。！!][\s\S]{0,60}$/gm,/^下面[我我们]?[开始将给来][\s\S]{0,80}$/gm,/^首先[，,]?[\s\S]{0,80}$/gm,/^现在[，,]?[\s\S]{0,80}$/gm,/^我[将会建议][\s\S]{0,80}$/gm];
+
+function cleanWord(text){
+  let t=text;
+  AI_CHATTER.forEach(p=>{t=t.replace(p,'')});
+  t=t.replace(/```[\s\S]*?```/g,m=>m.replace(/```\w*\n?/g,'').replace(/```/g,''));
+  t=t.replace(/`([^`]+)`/g,'$1').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1');
+  t=t.replace(/^#{1,6}\s/gm,'').replace(/^&gt;\s?/gm,'').replace(/^>\s?/gm,'');
+  t=t.replace(/^[-*_=]{3,}\s*$/gm,'').replace(/[ ]{2,}/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+  return t;
+}
+
+function buildDocTitle(section){
+  const diff=state.difficulty||'';const agent=state.agent;let prefix='';
+  if(agent==='grammar'){const sel=state.sessions.grammar.selected||[];prefix=diff+'语法-'+((sel.length>0)?sel.join('、'):'综合')}
+  else if(agent==='teaching'){const t=state.teaching;prefix=[diff,t.grade,t.publisher,t.semester,t.unit?'Unit'+t.unit:''].filter(Boolean).join('·')}
+  else if(agent==='exam'){prefix=diff+(state.sessions.exam.examType||'英语试卷')}
+  else if(agent==='writing'){prefix=diff+(state.sessions.writing.writeType||'英语作文')}
+  else{prefix=diff||'英语'}
+  const labels={exam:'试卷版',answer:'答案版',teacher:'教师版（含解析）'};
+  return prefix+' — '+labels[section];
+}
+
+function buildWordHTML(section){
+  const now=new Date().toLocaleString('zh-CN');const title=buildDocTitle(section);
+  let rawContent='';
+  curMsgs().forEach(msg=>{
+    if(msg.role!=='assistant')return;let text=msg.content;
+    if(section==='exam'){const m=text.match(/【试卷版】([\s\S]*?)(?=【答案版】|【教师版】|$)/);rawContent+=(m?m[1]:text)+'\n'}
+    else if(section==='answer'){const m=text.match(/【答案版】([\s\S]*?)(?=【教师版】|$)/);rawContent+=(m?m[1]:'')+'\n'}
+    else if(section==='teacher'){const m=text.match(/【教师版】([\s\S]*)/);rawContent+=(m?m[1]:text)+'\n'}
+  });
+  // Render markdown tables to HTML, then convert to Word-native tables
+  let rendered=md(rawContent);
+  // Convert <table> to Word-compatible format with borders
+  rendered=rendered
+    .replace(/<table class="md-table">/g,'<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;margin:10px 0">')
+    .replace(/<th>/g,'<th style="background:#E9E4F7;color:#5F4B8B;font-weight:bold;font-family:SimHei,sans-serif;padding:6px 10px;text-align:left">')
+    .replace(/<td>/g,'<td style="padding:5px 10px;text-align:left;vertical-align:middle;word-break:keep-all">');
+  // Clean remaining markdown from non-table content
+  rendered=cleanWord(rendered);
+  if(!rendered.trim()||rendered==='<p></p>')rendered='（暂无内容，请先生成）';
+  return'<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>'+title+'</title><style>@page{size:A4;margin:2.5cm}body{font-family:"Microsoft YaHei","Times New Roman",serif;font-size:14px;line-height:1.5;color:#000}h1{text-align:center;font-size:20px;font-family:"Microsoft YaHei",sans-serif}h2{font-size:16px;font-family:"Microsoft YaHei",sans-serif}.info{text-align:center;font-size:12px;border-bottom:1.5px solid #000;padding-bottom:10px;margin-bottom:16px}.content{white-space:pre-wrap}.footer{text-align:center;margin-top:24px;font-size:10px;color:#888;border-top:1px solid #ccc;padding-top:8px}table{page-break-inside:avoid}thead{display:table-header-group}</style></head><body><h1>'+title+'</h1><div class="info">Melix Teacher | 导出时间：'+now+' | 难度：'+(state.difficulty||'默认')+'</div><div class="content">'+rendered+'</div><div class="footer">—— Melix Teacher · 专业教学资料 ——</div></body></html>';
+}
+
+function exportDoc(section){
+  if(!curMsgs().length){alert('请先生成内容再导出');return}
+  const title=buildDocTitle(section);const html=buildWordHTML(section);
+  const blob=new Blob(['﻿'+html],{type:'application/msword;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;
+  a.download=title+'_'+new Date().toISOString().slice(0,10)+'.doc';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════
+// CONVERSATION MANAGEMENT
+// ═══════════════════════════════════════
+function convTitle(msgs){
+  if(!msgs||!msgs.length)return'新会话';
+  for(let i=0;i<msgs.length;i++){if(msgs[i].role==='user'){let t=msgs[i].content.replace(/【[^】]*】/g,'').trim();if(t.length>25)t=t.slice(0,25)+'…';return t||'新会话'}}
+  return'新会话';
+}
+function newConv(){
+  const s=cur();const c=curConv();
+  if(c&&c.messages.length>0)c.title=convTitle(c.messages);
+  const id='conv_'+Date.now();
+  s.conversations.push({id:id,title:'新会话',messages:[],createdAt:Date.now()});
+  s.activeConvId=id;
+  if(state.agent==='grammar')s.selected=[];
+  renderMsgs();renderConvList();updateEmpty();saveAll();
+}
+function switchConv(convId){
+  const s=cur();const c=curConv();
+  if(c&&c.messages.length>0)c.title=convTitle(c.messages);
+  s.activeConvId=convId;
+  renderMsgs();renderConvList();updateEmpty();saveAll();
+}
+function deleteConv(convId){
+  const s=cur();
+  if(!s.conversations||s.conversations.length<=1)return;
+  const idx=s.conversations.findIndex(x=>x.id===convId);
+  if(idx<0)return;
+  s.conversations.splice(idx,1);
+  if(s.activeConvId===convId)s.activeConvId=s.conversations[0].id;
+  renderMsgs();renderConvList();updateEmpty();saveAll();
+}
+function renderConvList(){
+  const el=document.getElementById('sbConvList');if(!el)return;
+  const s=cur();
+  if(!s.conversations||!s.conversations.length){el.innerHTML='<div class="sb-empty">暂无会话记录</div>';return}
+  const convs=[...s.conversations].reverse();
+  const now=Date.now(),aid=s.activeConvId;
+  el.innerHTML=convs.map(c=>{
+    const isActive=c.id===aid;
+    let ts='';const diff=now-c.createdAt;
+    if(diff<86400000)ts='今天';else if(diff<172800000)ts='昨天';else if(diff<604800000)ts='本周';else ts=new Date(c.createdAt).toLocaleDateString('zh-CN',{month:'short',day:'numeric'});
+    const title=c.title||convTitle(c.messages);
+    return'<div class="sb-conv'+(isActive?' active':'')+'" onclick="switchConv(\''+c.id+'\')"><span class="sb-conv-ic">'+(isActive?'💬':'📄')+'</span><span class="sb-conv-tl">'+title+'</span><span class="sb-conv-tm">'+ts+'</span><span class="sb-conv-act"><button class="sb-conv-act-btn" onclick="event.stopPropagation();deleteConv(\''+c.id+'\')">✕</button></span></div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// MESSAGES
+// ═══════════════════════════════════════
+function renderMsgs(){
+  const c=document.getElementById('mpMessages');
+  c.innerHTML='';streamEl=null;
+  const msgs=curMsgs();
+  msgs.forEach(m=>{const e=createMsgEl(m,false);c.appendChild(e);if(m.streaming)streamEl=e});
+  updateEmpty();
+  if(msgs.length)c.scrollTop=c.scrollHeight;
+}
+function createMsgEl(msg,streaming){
+  const d=document.createElement('div');d.className='msg '+msg.role;
+  d.innerHTML='<div class="msg-av">'+(msg.role==='user'?'👤':'🎓')+'</div><div class="msg-content">'+md(msg.content)+(streaming?'<span class="load-dots"><span></span><span></span><span></span></span>':'')+'</div>';
+  return d;
+}
+function updateStreamEl(content){
+  if(streamEl){const cd=streamEl.querySelector('.msg-content');if(cd)cd.innerHTML=md(content)+'<span class="load-dots"><span></span><span></span><span></span></span>';document.getElementById('mpMessages').scrollTop=document.getElementById('mpMessages').scrollHeight}
+}
+function addMsg(role,content,streaming){
+  const msgs=curMsgs();
+  if(streaming&&role==='assistant'&&msgs.length>0){const last=msgs[msgs.length-1];if(last.role==='assistant'&&last.streaming){last.content=content;updateStreamEl(content);saveAll();return}}
+  msgs.push({role,content,streaming});renderMsgs();saveAll();
+}
+function finishStreaming(){
+  const msgs=curMsgs();
+  if(msgs.length>0)msgs[msgs.length-1].streaming=false;
+  if(streamEl){const cd=streamEl.querySelector('.msg-content');if(cd&&msgs.length>0)cd.innerHTML=md(msgs[msgs.length-1].content);streamEl=null}
+  saveAll();
+}
+function updateEmpty(){
+  const es=document.getElementById('mpEmpty');
+  if(!es)return;
+  es.style.display=curMsgs().length===0?'flex':'none';
+}
+
+// ═══════════════════════════════════════
+// AGENT SWITCHING
+// ═══════════════════════════════════════
+function switchAgent(agent,btn){
+  dbg('切换到 '+AGENT_NAMES[agent],'ok');
+  state.agent=agent;
+  document.querySelectorAll('.sb-agent').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  document.getElementById('mpAgentBadge').textContent=AGENT_NAMES[agent];
+  buildConfig(agent);
+  renderMsgs();
+  renderConvList();
+  updateEmpty();
+  saveAll();
+}
+
+// ═══════════════════════════════════════
+// STUDENT & DIFFICULTY
+// ═══════════════════════════════════════
+function updateStudent(){
+  state.student=document.getElementById('studentSelect').value;
+  const data={nandy:{name:'Nandy',av:'👩',meta:'昌平区 · 六年级 · 小升初<br>📖 PEP六年级 Unit 5<br>🕐 最近：一般现在时',prog:82,label:'Nandy · 昌平区六年级'},yiyi:{name:'熠熠',av:'👧',meta:'海淀区 · 初一 · 初二提前学<br>📖 人教版初一 Unit 3<br>🕐 最近：宾语从句',prog:65,label:'熠熠 · 海淀区初一'}};
+  const d=data[state.student];
+  const card=document.getElementById('sbCard');
+  if(d){card.innerHTML='<div class="sb-card-top"><div class="sb-card-av">'+d.av+'</div><div class="sb-card-name">'+d.name+'</div></div><div class="sb-card-meta">'+d.meta+'</div><div class="sb-card-prog"><div class="sb-prog-bar"><div class="sb-prog-fill" style="width:'+d.prog+'%"></div></div><span class="sb-prog-lbl">'+d.prog+'%</span></div>'}
+  else{card.innerHTML='<div class="sb-empty">点击选择学生</div>'}
+  document.getElementById('mpStudentInfo').textContent=d?d.label:'';
+  document.getElementById('sbDiffLbl').textContent=state.difficulty||'自动';
+  saveAll();
+}
+function updateDifficulty(){
+  state.difficulty=document.getElementById('difficultySelect').value;
+  document.getElementById('mpDiffInfo').textContent=state.difficulty?'📊 '+state.difficulty:'';
+  document.getElementById('sbDiffLbl').textContent=state.difficulty||'自动';
+  saveAll();
+}
+function cycleStudent(){
+  const sel=document.getElementById('studentSelect');
+  const opts=Array.from(sel.options).filter(o=>o.value);
+  const idx=opts.findIndex(o=>o.value===state.student);
+  sel.value=idx+1<opts.length?opts[idx+1].value:opts[0].value;
+  updateStudent();
+}
+function cycleDifficulty(){
+  const sel=document.getElementById('difficultySelect');
+  const opts=Array.from(sel.options).filter(o=>o.value);
+  const idx=opts.findIndex(o=>o.value===state.difficulty);
+  sel.value=idx+1<opts.length?opts[idx+1].value:opts[0].value;
+  updateDifficulty();
+}
+
+// ═══════════════════════════════════════
+// AGENT CONFIG PANELS
+// ═══════════════════════════════════════
+function buildConfig(agent){
+  const el=document.getElementById('mpConfig');
+  const inner=document.getElementById('mpConfigInner');
+  let html='';
+  if(agent==='teaching'){
+    html='<div class="cfg-title">📚 教材选择</div><div class="cfg-row">';
+    html+='<select class="cfg-sel" id="teachStage" onchange="onTeachStage()"><option value="">选择学段</option><option value="小学">小学</option><option value="初中">初中</option><option value="高中">高中</option></select>';
+    html+='<select class="cfg-sel" id="teachPublisher"><option value="">教材版本</option></select>';
+    html+='<select class="cfg-sel" id="teachGrade"><option value="">年级</option></select>';
+    html+='<select class="cfg-sel" id="teachSemester"><option value="">册次</option></select>';
+    html+='<input class="cfg-sel" id="teachUnit" placeholder="Unit编号" style="width:100px">';
+    html+='</div><div class="cfg-row"><button class="cfg-btn" onclick="applyTeaching()">📖 开始备课</button></div>';
+  }else if(agent==='grammar'){
+    html='<div class="cfg-title">📐 语法知识点 · 支持多选 <span id="gramCnt" style="font-size:.8rem;color:var(--text2)"></span></div><div class="gram-grid">';
+    for(const[cat,items]of Object.entries(GRAMMAR_DATA)){
+      html+='<div class="gram-cat">'+cat+'</div>';
+      items.forEach(item=>{const sel=cur().selected||[];html+='<div class="gram-item'+(sel.includes(item)?' sel':'')+'" onclick="toggleGram(\''+item+'\',this)">'+item+'</div>'});
+    }
+    html+='</div><div class="cfg-row" style="margin-top:10px"><button class="cfg-btn" id="gramBtn" onclick="applyGrammar()">📐 '+(cur().selected&&cur().selected.length>0?'组合出题（已选'+cur().selected.length+'项）':'请点击选择语法点')+'</button></div>';
+  }else if(agent==='exam'){
+    html='<div class="cfg-title">📋 组卷配置</div><div class="cfg-row">';
+    html+='<select class="cfg-sel" id="examType" onchange="cur().examType=this.value;saveAll()"><option value="">试卷类型</option><option value="单元测试">单元测试</option><option value="期中测试">期中测试</option><option value="期末测试">期末测试</option><option value="月考">月考</option><option value="小升初模拟">小升初模拟</option><option value="中考模拟">中考模拟</option><option value="高考模拟">高考模拟</option></select>';
+    html+='<select class="cfg-sel" id="examScore" onchange="cur().score=this.value;saveAll()"><option value="100">100分</option><option value="120">120分</option><option value="150">150分</option></select>';
+    html+='<select class="cfg-sel" id="examDuration" onchange="cur().duration=this.value;saveAll()"><option value="60">60分钟</option><option value="90">90分钟</option><option value="120">120分钟</option></select>';
+    html+='</div><div class="cfg-row"><button class="cfg-btn" onclick="applyExam()">📋 生成试卷</button></div>';
+  }else if(agent==='grade'){
+    html='<div class="cfg-title">🔬 上传试卷批改</div>';
+    html+='<div style="border:2px dashed var(--border);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;background:var(--input-bg)" onclick="document.getElementById(\'gradeFile\').click()"><div style="font-size:2rem">📤</div><div style="font-size:.85rem;color:var(--text2)">点击上传试卷（图片/PDF/Word）</div><input type="file" id="gradeFile" accept="image/*,.pdf,.doc,.docx,.txt" onchange="onGradeFile(event)" style="display:none"></div>';
+    html+='<div id="gradeResult" style="display:none;margin-top:8px;padding:8px;background:#EDF5EE;border-radius:var(--radius-sm);font-size:.8rem"></div>';
+    html+='<div class="cfg-row" style="margin-top:10px"><textarea class="cfg-sel" id="gradeText" placeholder="或直接粘贴试卷文本..." style="flex:1;min-height:60px;resize:vertical"></textarea><button class="cfg-btn" onclick="applyGrade()">🔬 开始批改</button></div>';
+  }else if(agent==='writing'){
+    html='<div class="cfg-title">✍️ 作文工具</div><div class="cfg-row">';
+    html+='<select class="cfg-sel" id="writeType" onchange="cur().writeType=this.value;saveAll()"><option value="">作文类型</option><option value="看图写话">看图写话</option><option value="书信">书信</option><option value="通知">通知</option><option value="演讲稿">演讲稿</option><option value="邀请信">邀请信</option><option value="感谢信">感谢信</option><option value="申请信">申请信</option><option value="日记">日记</option><option value="观点类">观点类</option><option value="图表类">图表类</option><option value="议论文">议论文</option><option value="记叙文">记叙文</option><option value="说明文">说明文</option><option value="读后续写">读后续写</option><option value="概要写作">概要写作</option><option value="开放作文">开放作文</option></select>';
+    html+='<select class="cfg-sel" id="writeAction" onchange="cur().writeAction=this.value;saveAll()"><option value="">操作</option><option value="命题">作文命题</option><option value="模板">作文模板</option><option value="批改">作文批改</option></select>';
+    html+='</div><div class="cfg-row"><button class="cfg-btn" onclick="applyWriting()">✍️ 开始</button></div>';
+  }
+  inner.innerHTML=html;
+  el.style.maxHeight='none';
+  requestAnimationFrame(()=>{el.style.maxHeight=el.scrollHeight+'px'});
+  setTimeout(()=>restoreConfig(agent),50);
+}
+function restoreConfig(agent){
+  if(agent==='teaching'){
+    const t=state.teaching;
+    if(t.stage){const s=document.getElementById('teachStage');if(s){s.value=t.stage;onTeachStage()}}
+    if(t.publisher){const s=document.getElementById('teachPublisher');if(s)s.value=t.publisher}
+    if(t.grade){const s=document.getElementById('teachGrade');if(s)s.value=t.grade}
+    if(t.semester){const s=document.getElementById('teachSemester');if(s)s.value=t.semester}
+    if(t.unit){const s=document.getElementById('teachUnit');if(s)s.value=t.unit}
+  }
+  if(agent==='exam'){
+    const s=cur();
+    if(s.examType){const e=document.getElementById('examType');if(e)e.value=s.examType}
+    if(s.score){const e=document.getElementById('examScore');if(e)e.value=s.score}
+    if(s.duration){const e=document.getElementById('examDuration');if(e)e.value=s.duration}
+  }
+  if(agent==='writing'){
+    const s=cur();
+    if(s.writeType){const e=document.getElementById('writeType');if(e)e.value=s.writeType}
+    if(s.writeAction){const e=document.getElementById('writeAction');if(e)e.value=s.writeAction}
+  }
+  if(agent==='grammar')updateGramCount();
+  const el=document.getElementById('mpConfig');
+  el.style.maxHeight='none';
+  requestAnimationFrame(()=>{el.style.maxHeight=el.scrollHeight+'px'});
+}
+function onTeachStage(){
+  const stage=document.getElementById('teachStage')?.value||'';
+  state.teaching.stage=stage;
+  const pub=document.getElementById('teachPublisher'),grd=document.getElementById('teachGrade'),sem=document.getElementById('teachSemester');
+  if(stage&&TEXTBOOK_DATA[stage]){
+    pub.innerHTML='<option value="">教材版本</option>'+TEXTBOOK_DATA[stage].publishers.map(p=>'<option>'+p+'</option>').join('');
+    grd.innerHTML='<option value="">年级</option>'+TEXTBOOK_DATA[stage].grades.map(g=>'<option>'+g+'</option>').join('');
+    sem.innerHTML='<option value="">册次</option>'+TEXTBOOK_DATA[stage].semesters.map(s=>'<option>'+s+'</option>').join('');
+  }
+}
+function toggleGram(item,el){
+  if(!cur().selected)cur().selected=[];
+  const s=cur().selected;const idx=s.indexOf(item);
+  if(idx>=0)s.splice(idx,1);else s.push(item);
+  el.classList.toggle('sel');updateGramCount();saveAll();
+}
+function updateGramCount(){
+  const cnt=(cur().selected||[]).length;
+  const btn=document.getElementById('gramBtn');
+  const lbl=document.getElementById('gramCnt');
+  if(lbl)lbl.textContent=cnt>0?'（已选'+cnt+'项）':'';
+  if(btn)btn.textContent=cnt>0?'📐 组合出题（已选'+cnt+'项：'+cur().selected.join('、')+'）':'📐 请点击选择语法点';
+}
+function onGradeFile(evt){
+  const file=evt.target.files[0];if(!file)return;
+  cur().uploadedFile=file;
+  const r=document.getElementById('gradeResult');r.style.display='block';
+  r.textContent='✅ 已上传：'+file.name+' ('+(file.size/1024).toFixed(1)+' KB)';
+  saveAll();
+}
+
+// ═══════════════════════════════════════
+// APPLY FUNCTIONS
+// ═══════════════════════════════════════
+function applyTeaching(){
+  const btn=document.querySelector('#mpConfig .cfg-btn');if(btn){btn.textContent='⏳ 备课中...';btn.disabled=true}
+  const t=state.teaching;
+  const stage=document.getElementById('teachStage')?.value||t.stage;
+  const pub=document.getElementById('teachPublisher')?.value||t.publisher;
+  const grd=document.getElementById('teachGrade')?.value||t.grade;
+  const sem=document.getElementById('teachSemester')?.value||t.semester;
+  const unit=document.getElementById('teachUnit')?.value||t.unit;
+  state.teaching={stage,publisher:pub,grade:grd,semester:sem,unit};
+  if(!stage||!pub||!grd){alert('请至少选择学段、教材版本和年级');if(btn){btn.textContent='📖 开始备课';btn.disabled=false}return}
+  const diff=state.difficulty||'';
+  const unitStr=unit?' Unit '+unit:'';
+  let msg='你是北京市一线英语教师。请为以下课程备课：\n\n学段：'+stage+' | 年级：'+grd+' | 教材：'+pub+' | 册次：'+sem+unitStr+' | 难度：'+diff+'\n\n按以下模块输出完整教案：\n一、单元词汇\n二、重点句型\n三、语法精讲\n四、阅读重点\n五、写作重点\n六、易错点\n七、北京考试链接\n八、课堂练习（标注【试卷版】）\n九、课后作业\n\n单独输出【答案版】和【教师版（含解析）】。直接输出最终教案，不要出现AI对话语句。';
+  document.getElementById('userInput').value=msg;sendMsg();
+  setTimeout(()=>{if(btn){btn.textContent='📖 开始备课';btn.disabled=false}},2000);
+}
+function applyGrammar(){
+  const btn=document.getElementById('gramBtn');if(btn){btn.textContent='⏳ 生成中...';btn.disabled=true}
+  if(!cur().selected)cur().selected=[];
+  const selected=cur().selected;
+  if(!selected.length){alert('请至少选择一个语法点');if(btn){btn.textContent='📐 请点击选择语法点';btn.disabled=false}return}
+  const diff=state.difficulty||'';
+  let msg='你是北京市英语语法教学专家。请讲解：'+selected.join('、')+'。难度：'+diff+'\n\n按以下模块输出：\n一、概念精讲\n二、对比辨析\n三、北京考试考法\n四、常见错误\n五、专项练习（标注【试卷版】：一、单选20题 二、填空10题 三、句型转换5题 四、改错5题）\n\n单独输出【答案版】和【教师版（含解析）】。直接输出最终内容。';
+  document.getElementById('userInput').value=msg;sendMsg();
+  setTimeout(()=>{if(btn){btn.textContent='📐 组合出题（已选'+cur().selected.length+'项）';btn.disabled=false}},2000);
+}
+function applyExam(){
+  const btn=document.querySelector('#mpConfig .cfg-btn');if(btn){btn.textContent='⏳ 组卷中...';btn.disabled=true}
+  const sess=cur();
+  sess.examType=document.getElementById('examType')?.value||sess.examType;sess.score=document.getElementById('examScore')?.value||sess.score;sess.duration=document.getElementById('examDuration')?.value||sess.duration;saveAll();
+  const diff=state.difficulty||'';
+  let msg='你是北京市英语命题专家。生成一份'+(sess.examType||'综合')+'英语试卷。总分'+sess.score+'分，时长'+sess.duration+'分钟，难度：'+diff+'\n\n试卷首页标明：学校____ 姓名____ 班级____ 得分____\n按大题号（一、二、三…）编排。输出：【试卷版】纯试题 →【答案版】答案+解析 →【教师版】详细解析+知识点分布。参考北京真实考试规范。直接输出最终试卷。';
+  document.getElementById('userInput').value=msg;sendMsg();
+  setTimeout(()=>{if(btn){btn.textContent='📋 生成试卷';btn.disabled=false}},2000);
+}
+function applyGrade(){
+  const btn=document.querySelector('#mpConfig .cfg-btn');if(btn){btn.textContent='⏳ 批改中...';btn.disabled=true}
+  const sess=cur();sess.ocrText=document.getElementById('gradeText')?.value||sess.ocrText;saveAll();
+  if(!sess.ocrText&&!sess.uploadedFile){alert('请先上传试卷或粘贴试卷文本');if(btn){btn.textContent='🔬 开始批改';btn.disabled=false}return}
+  let msg='批改以下试卷。输出：①总分及各模块得分 ②逐题批改 ③薄弱知识点统计 ④学习建议 ⑤相似练习推荐。直接输出最终批改报告。';
+  if(sess.ocrText)msg+='\n\n[试卷内容]\n'+sess.ocrText;
+  document.getElementById('userInput').value=msg;sendMsg();
+  setTimeout(()=>{if(btn){btn.textContent='🔬 开始批改';btn.disabled=false}},2000);
+}
+function applyWriting(){
+  const btn=document.querySelector('#mpConfig .cfg-btn');if(btn){btn.textContent='⏳ 处理中...';btn.disabled=true}
+  const sess=cur();sess.writeType=document.getElementById('writeType')?.value||sess.writeType;sess.writeAction=document.getElementById('writeAction')?.value||sess.writeAction;saveAll();
+  if(!sess.writeType){alert('请先选择作文类型');if(btn){btn.textContent='✍️ 开始';btn.disabled=false}return}
+  const diff=state.difficulty||'';
+  let msg='';
+  if(sess.writeAction==='命题')msg='你是北京市英语作文命题专家。请为'+sess.writeType+'生成作文题目。难度：'+diff+'\n输出：作文题目+写作提示+字数要求+评分标准+范文+常用表达。直接输出最终内容。';
+  else if(sess.writeAction==='模板')msg='你是北京市英语作文教学专家。请为'+sess.writeType+'生成作文模板。难度：'+diff+'\n输出：基础模板+高分模板+万能句型+高级替换表达+评分标准。直接输出最终内容。';
+  else if(sess.writeAction==='批改')msg='你是北京市英语作文阅卷专家。请批改以下'+sess.writeType+'作文。输出：总评分+逐句修改版+修改原因+高分范文+可积累表达。\n\n[在此粘贴学生作文]';
+  else msg='你是北京市英语写作教学专家。请讲解'+sess.writeType+'写作方法。难度：'+diff+'\n输出：文体特征+结构框架+常用句型+范文2篇+评分要点+常见错误。直接输出最终内容。';
+  document.getElementById('userInput').value=msg;sendMsg();
+  setTimeout(()=>{if(btn){btn.textContent='✍️ 开始';btn.disabled=false}},2000);
+}
+
+// ═══════════════════════════════════════
+// SEND MESSAGE
+// ═══════════════════════════════════════
+async function sendMsg(){
+  const input=document.getElementById('userInput');
+  const text=input.value.trim();
+  if(!text||state.isLoading)return;
+  input.value='';input.style.height='auto';
+  document.getElementById('sendBtn').disabled=true;state.isLoading=true;
+
+  // Collapse config
+  const cfg=document.getElementById('mpConfig');if(cfg)cfg.style.maxHeight='0';
+
+  addMsg('user',text);
+
+  let ctx='【重要规则】1.禁止生成依赖图片的题目 2.知识严格模式：仅基于教材和真题知识库回答，不存在的内容请明确说"当前知识库暂无该内容"，禁止编造。\n';
+  if(state.difficulty)ctx+='[难度：'+state.difficulty+']\n';
+  if(state.student==='nandy')ctx+='[学生：Nandy，昌平区六年级小升初，人教版PEP]\n';
+  else if(state.student==='yiyi')ctx+='[学生：熠熠，海淀区初一，初二提前学，人教版]\n';
+  if(ctx)ctx+='\n';
+
+  const userContent=ctx+text;
+  const allMsgs=curMsgs();
+  const apiMsgs=[];
+  for(let i=Math.max(0,allMsgs.length-11);i<allMsgs.length-1;i++){
+    if(!allMsgs[i].streaming)apiMsgs.push({role:allMsgs[i].role,content:allMsgs[i].content});
+  }
+  apiMsgs.push({role:'user',content:userContent});
+
+  addMsg('assistant','',true);
+
+  try{
+    const resp=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:apiMsgs})});
+    if(!resp.ok){const err=await resp.json().catch(()=>({error:'HTTP '+resp.status}));throw new Error(err.error||'请求失败')}
+    const reader=resp.body.getReader();const decoder=new TextDecoder();let full='',buf='';
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      buf+=decoder.decode(value,{stream:true});
+      const lines=buf.split('\n');buf=lines.pop()||'';
+      for(const line of lines){
+        if(line.startsWith('data: ')){
+          try{const d=JSON.parse(line.slice(6));if(d.type==='text'){full+=d.text;addMsg('assistant',full,true)}}catch(e){}
+        }
+      }
+    }
+    finishStreaming();
+    const conv=curConv();if(conv&&conv.messages.length>0)conv.title=convTitle(conv.messages);
+    dbg('✅ 生成完成 ('+full.length+' 字)','ok');
+    renderConvList();
+  }catch(e){
+    finishStreaming();
+    dbg('❌ 错误: '+e.message,'err');
+    const msgs=curMsgs();
+    let em=e.message||'未知错误';
+    if(em.includes('Failed to fetch'))em='无法连接服务器，请确认已运行 node server.js';
+    if(msgs.length>0)msgs[msgs.length-1]={role:'assistant',content:'❌ 出错了：'+em,streaming:false};
+    else msgs.push({role:'assistant',content:'❌ 出错了：'+em,streaming:false});
+    renderMsgs();saveAll();
+  }finally{
+    state.isLoading=false;
+    document.getElementById('sendBtn').disabled=false;
+    document.getElementById('userInput').focus();
+  }
+}
+
+// ═══════════════════════════════════════
+// KB DASHBOARD
+// ═══════════════════════════════════════
+function toggleKB(){
+  const kb=document.getElementById('kbDash');
+  if(kb.style.display==='block'){kb.style.display='none'}else{kb.style.display='block';loadKB()}
+}
+function loadKB(){
+  fetch('/api/config').then(r=>r.json()).then(d=>{
+    document.getElementById('kbContent').innerHTML='<div>🔗 模型：'+d.model+'</div><div>📚 教材库：✅ 已加载</div><div>📐 语法库：✅ 已加载</div><div>📋 考情库：✅ 已加载</div><div>📝 模板库：✅ 已加载</div><div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:.7rem">RAG：本地文件 | Embedding：未接入</div>';
+  }).catch(()=>{document.getElementById('kbContent').textContent='⚠️ 无法获取状态'});
+}
+
+// ═══════════════════════════════════════
+// RESIZER
+// ═══════════════════════════════════════
+(function(){
+  const sidebar=document.getElementById('sidebar');
+  const resizer=document.getElementById('sbResizer');
+  let dragging=false,startX=0,startW=0;
+  const saved=localStorage.getItem('nav_w');
+  if(saved&&sidebar){sidebar.style.width=saved+'px';document.documentElement.style.setProperty('--nav-w',saved+'px')}
+  resizer.addEventListener('mousedown',function(e){
+    dragging=true;startX=e.clientX;startW=sidebar.offsetWidth;
+    resizer.classList.add('dragging');document.body.style.cursor='col-resize';document.body.style.userSelect='none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!dragging)return;
+    let w=startW+(e.clientX-startX);
+    w=Math.max(240,Math.min(400,w));
+    sidebar.style.width=w+'px';document.documentElement.style.setProperty('--nav-w',w+'px');
+  });
+  document.addEventListener('mouseup',function(){
+    if(!dragging)return;dragging=false;
+    resizer.classList.remove('dragging');document.body.style.cursor='';document.body.style.userSelect='';
+    localStorage.setItem('nav_w',sidebar.offsetWidth);
+  });
+})();
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+loadAll();
+document.getElementById('studentSelect').value=state.student;
+document.getElementById('difficultySelect').value=state.difficulty;
+document.getElementById('mpAgentBadge').textContent=AGENT_NAMES[state.agent];
+document.querySelectorAll('.sb-agent').forEach(b=>{if(b.dataset.agent===state.agent)b.classList.add('active')});
+
+// Server check
+fetch('/api/health').then(r=>r.json()).then(d=>{dbg('✅ 服务器已连接，模型: '+d.model,'ok')}).catch(()=>{dbg('❌ 无法连接服务器','err')});
+
+updateStudent();
+updateDifficulty();
+// Ensure every agent session defaults to a fresh empty conversation (don't restore old chat)
+Object.values(state.sessions).forEach(s=>{if(s.conversations&&s.conversations.length>0&&s.conversations[0].messages&&s.conversations[0].messages.length>0){s.activeConvId=s.conversations[0].id}});
+renderMsgs();
+renderConvList();
+updateEmpty();
+buildConfig(state.agent);
+saveAll();
+
+// Auto-resize textarea
+document.getElementById('userInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'});
+</script>
+</body>
+</html>
