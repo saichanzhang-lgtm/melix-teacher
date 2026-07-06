@@ -337,8 +337,9 @@ const server = http.createServer(async (req, res) => {
     if(!/^1\d{10}$/.test(phone)){res.writeHead(400,jsonH);res.end(JSON.stringify({error:'手机号格式不正确'}));return}
     const code=ENV==='development'?'123456':String(Math.floor(100000+Math.random()*900000));
     setCode(phone,code);
-    console.log('📱 验证码 ['+phone+']: '+code+(ENV==='development'?' (开发模式)':''));
-    res.writeHead(200,jsonH);res.end(JSON.stringify({success:true,message:'验证码已发送'+(ENV==='development'?' (开发模式: '+code+')':'')}));
+    const devMsg=ENV==='development'?' (开发模式: '+code+')':'';
+    console.log('📱 验证码 ['+phone+']: '+code+devMsg);
+    res.writeHead(200,jsonH);res.end(JSON.stringify({success:true,message:'验证码: '+code+' (有效期5分钟，未配置短信服务，请在登录页输入此验证码)'}));
     return;
   }
 
