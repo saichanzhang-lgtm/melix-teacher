@@ -1,0 +1,26 @@
+node_modules/
+data/
+*.exe
+npm-debug.log
+.DS_Store
+web/node_modules/
+
+# 🔐 敏感文件（含 API Key / 密钥，严禁提交到公开仓库）
+.env
+.env.*
+*.bak-*
+*.backup-*
+web/_*.txt
+web/_*.js
+web/_*.log
+
+# 👤 学生个人信息 / 含学生姓名的试卷（严禁公开）
+students/
+exams/
+
+# 无关的临时脚本与杂项目录
+scripts/*imo*
+scripts/process_log.txt
+包裹卡优化方案/
+scripts/nandy-mock-*.js
+scripts/verify_render.py

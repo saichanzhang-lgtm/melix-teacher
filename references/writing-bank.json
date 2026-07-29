@@ -1,0 +1,101 @@
+{
+  "description": "北京K12英语作文范文库 — 按学段/文体组织",
+  "version": "1.0",
+  "小学": {
+    "看图写话": {
+      "title": "My Family",
+      "difficulty": "★☆☆☆☆",
+      "wordCount": 60,
+      "model": "This is a picture of my family. There are four people in my family. They are my father, my mother, my sister and me. My father is tall and strong. My mother is very kind. We often go to the park together on weekends. I love my family very much.",
+      "chinese": "这是我家的一张照片。我家有四口人：爸爸、妈妈、妹妹和我。爸爸又高又壮，妈妈很和蔼。周末我们经常一起去公园。我非常爱我的家人。",
+      "usefulExpressions": ["There are... people in my family", "on weekends", "I love... very much"],
+      "scoreRubric": {"内容完整": 5, "语言准确": 5, "书写规范": 5}
+    },
+    "书信": {
+      "title": "A Letter to My Pen Pal",
+      "difficulty": "★★☆☆☆",
+      "wordCount": 70,
+      "model": "Dear Tom,\n\nHow are you? I'm writing to tell you about my school life. I go to school from Monday to Friday. My favorite subject is English because it's interesting. After school, I often play basketball with my friends.\n\nWhat about you? Please write back soon.\n\nYours,\nLi Ming",
+      "chinese": "亲爱的Tom，你好吗？我写信想告诉你我的校园生活。我周一到周五上学。我最喜欢的科目是英语，因为它很有趣。放学后我经常和朋友打篮球。你呢？请尽快回信。",
+      "usefulExpressions": ["I'm writing to tell you about...", "My favorite subject is... because...", "Please write back soon"],
+      "scoreRubric": {"格式正确": 3, "内容完整": 5, "语言准确": 5, "书写规范": 2}
+    }
+  },
+  "初中": {
+    "书信": {
+      "title": "感谢信 — Thanking a Teacher",
+      "difficulty": "★★★☆☆",
+      "wordCount": 90,
+      "model": "Dear Ms. Wang,\n\nI'm writing to express my sincere thanks for your help. When I was struggling with English last semester, you spent a lot of time helping me after class. You not only taught me grammar rules but also showed me how to enjoy learning English. Thanks to your encouragement, my English has improved greatly.\n\nI really appreciate everything you've done for me. I will keep working hard.\n\nBest wishes,\nLi Hua",
+      "chinese": "亲爱的王老师，我写信想表达我诚挚的感谢。上学期我在英语上遇到困难时，您花了很多课外时间帮助我。您不仅教我语法规则，还让我学会了享受学英语。多亏您的鼓励，我的英语进步很大。我真心感谢您为我做的一切。我会继续努力。",
+      "usefulExpressions": ["I'm writing to express my sincere thanks for...", "not only...but also...", "Thanks to...", "I really appreciate..."],
+      "scoreRubric": {"格式规范": 2, "内容完整": 3, "语言准确": 3, "连贯衔接": 2}
+    },
+    "观点类": {
+      "title": "Should Students Use Mobile Phones at School?",
+      "difficulty": "★★★★☆",
+      "wordCount": 100,
+      "model": "Nowadays, more and more students bring mobile phones to school. In my opinion, students should not use mobile phones at school.\n\nFirst, mobile phones may distract students from their studies. It is easy for students to play games or chat online instead of listening to the teacher. Second, using mobile phones too much is bad for our eyes.\n\nHowever, some people think mobile phones are useful for looking up information. I agree, but I think students can use them at home instead.\n\nIn conclusion, I believe students should focus on their studies at school and leave their mobile phones at home.",
+      "chinese": "如今，越来越多的学生带手机上学。我认为学生不应该在学校使用手机。首先，手机会分散学习注意力，学生容易玩游戏或聊天而不是听课。其次，过度使用手机对眼睛有害。虽然有人觉得手机对查资料有用，但我认为学生可以在家使用。总之，学生应该在学校专注学习，把手机留在家里。",
+      "usefulExpressions": ["In my opinion...", "First... Second...", "However, some people think...", "In conclusion..."],
+      "scoreRubric": {"观点明确": 3, "论证充分": 3, "语言准确": 3, "结构完整": 1}
+    },
+    "记叙文": {
+      "title": "An Unforgettable Experience",
+      "difficulty": "★★★☆☆",
+      "wordCount": 85,
+      "model": "Last summer, I had an unforgettable experience. I went to a summer camp in the mountains with my classmates. On the first day, we had to climb a very high mountain. I was so tired that I wanted to give up. But my friends encouraged me and said, 'You can do it!' With their help, I finally reached the top. The view was amazing! From that experience, I learned that we can achieve anything if we never give up.",
+      "chinese": "去年夏天，我有一段难忘的经历。我和同学去山里参加夏令营。第一天我们要爬一座很高的山，我累得想放弃。但朋友们鼓励我说「你可以的！」在他们的帮助下，我终于到了山顶。景色太美了！从那次经历中我学到了只要不放弃就什么都能做到。",
+      "usefulExpressions": ["I had an unforgettable experience", "so...that...", "I learned that...", "never give up"],
+      "scoreRubric": {"叙事完整": 3, "细节描写": 2, "感悟总结": 2, "语言准确": 3}
+    },
+    "申请信": {
+      "title": "Volunteer Application",
+      "difficulty": "★★★★☆",
+      "wordCount": 95,
+      "model": "Dear Sir or Madam,\n\nI'm writing to apply for the volunteer position in the City Library Summer Program. I'm a Junior 1 student from Haidian District.\n\nI think I am the right person for this job. First, I love reading and I'm familiar with the library. Second, I have experience helping younger children with their homework. What's more, I am patient and responsible.\n\nI would be very grateful if you could give me this opportunity. I'm looking forward to your reply.\n\nYours faithfully,\nLi Hua",
+      "chinese": "尊敬的负责人，我写信申请市图书馆暑期项目的志愿者岗位。我是海淀区初一学生。我认为我适合这份工作：首先，我热爱阅读且熟悉图书馆；其次，我有辅导小孩子的经验；更重要的是，我有耐心和责任心。如能给我这个机会我将非常感激。期待您的回复。",
+      "usefulExpressions": ["I'm writing to apply for...", "I think I am the right person for...", "I have experience...", "I would be very grateful if..."],
+      "scoreRubric": {"格式规范": 2, "内容完整": 3, "语言表达": 3, "得体程度": 2}
+    }
+  },
+  "常用写作句型": {
+    "开头": [
+      "I'm writing to tell you about...",
+      "Nowadays, more and more people...",
+      "With the development of society..."
+    ],
+    "表达观点": [
+      "In my opinion / From my point of view...",
+      "I believe that...",
+      "As far as I'm concerned..."
+    ],
+    "列举理由": [
+      "First of all / To begin with...",
+      "What's more / Besides / Moreover...",
+      "Last but not least..."
+    ],
+    "对比转折": [
+      "However / On the other hand...",
+      "Although / Even though...",
+      "Every coin has two sides."
+    ],
+    "总结": [
+      "In conclusion / To sum up...",
+      "All in all...",
+      "In a word..."
+    ]
+  },
+  "高分替换表达": {
+    "good": ["excellent", "wonderful", "fantastic", "brilliant"],
+    "bad": ["terrible", "awful", "harmful", "negative"],
+    "important": ["significant", "essential", "vital", "crucial"],
+    "think": ["believe", "suppose", "consider", "in my view"],
+    "like": ["enjoy", "be fond of", "be keen on", "be interested in"],
+    "many": ["a lot of", "plenty of", "a number of", "various"],
+    "but": ["however", "nevertheless", "on the other hand", "whereas"],
+    "because": ["since", "as", "due to", "owing to"],
+    "very": ["extremely", "incredibly", "remarkably", "particularly"],
+    "happy": ["delighted", "pleased", "overjoyed", "cheerful"]
+  }
+}

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Melix Teacher — AI Workflow Mockup</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1a1a2e;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif}
+
+.phone{
+  width:393px;height:852px;
+  background:linear-gradient(180deg,#f0eef8 0%,#ecebf5 30%,#e8e6f4 100%);
+  border-radius:44px;
+  overflow:hidden;
+  position:relative;
+  box-shadow:0 0 0 3px #1a1a2e,0 0 0 6px #2d2d44,0 0 0 8px #1a1a2e,0 20px 60px rgba(0,0,0,.5);
+}
+
+.status-bar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 28px 0;font-size:12px;font-weight:600;color:#1a1a2e;
+}
+
+/* Agent Header */
+.agent-header{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px 6px;
+}
+.back-btn{
+  width:30px;height:30px;border-radius:50%;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:#6957e4;cursor:pointer;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.agent-title{font-size:17px;font-weight:700;color:#1a1a2e;letter-spacing:-.2px}
+.agent-sub{font-size:11px;color:#8e8ca0;margin-left:4px}
+
+/* Agent Tabs */
+.tabs-wrapper{
+  padding:8px 12px;overflow-x:auto;display:flex;gap:8px;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.tabs-wrapper::-webkit-scrollbar{display:none}
+.tab{
+  flex-shrink:0;padding:8px 16px;border-radius:20px;
+  font-size:12px;font-weight:600;border:none;
+  background:#fff;color:#8e8ca0;cursor:pointer;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);transition:all .2s;
+  font-family:inherit;
+}
+.tab.active{background:#6957e4;color:#fff;box-shadow:0 4px 12px rgba(105,87,228,.25)}
+.tab:hover:not(.active){color:#6957e4}
+
+/* Content Scroll */
+.content{
+  flex:1;overflow-y:auto;padding:0 12px;
+  height:calc(852px - 350px);
+}
+
+/* Section Title */
+.section-title{
+  font-size:11px;font-weight:700;color:#8e8ca0;text-transform:uppercase;
+  letter-spacing:1px;margin:12px 4px 8px;
+}
+
+/* Grammar Category Cards */
+.cat-card{
+  background:#fff;border-radius:16px;margin-bottom:8px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);overflow:hidden;
+}
+.cat-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;cursor:pointer;transition:background .15s;
+}
+.cat-header:hover{background:#f9f8ff}
+.cat-header.open .cat-arrow{transform:rotate(180deg)}
+.cat-name{font-size:14px;font-weight:700;color:#1a1a2e;display:flex;align-items:center;gap:8px}
+.cat-ic{font-size:16px}
+.cat-count{font-size:10px;color:#8e8ca0;font-weight:400;margin-left:4px}
+.cat-arrow{font-size:10px;color:#8e8ca0;transition:transform .25s}
+
+.cat-body{display:none;padding:0 16px 14px;flex-wrap:wrap;gap:8px}
+.cat-body.open{display:flex}
+.chip{
+  padding:7px 14px;border-radius:18px;font-size:12px;
+  border:.5px solid rgba(0,0,0,.08);background:#f5f4f9;
+  color:#1a1a2e;cursor:pointer;transition:all .15s;font-family:inherit;
+}
+.chip:hover{border-color:#6957e4;color:#6957e4}
+.chip.selected{background:#6957e4;color:#fff;border-color:#6957e4}
+
+/* Selected Chips Bar */
+.chips-bar{
+  display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;
+  background:rgba(255,255,255,.6);min-height:44px;align-items:center;
+  margin:0 4px;
+}
+.chips-bar-label{font-size:11px;color:#8e8ca0;font-weight:500}
+.selected-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:6px 12px;border-radius:16px;font-size:11px;
+  background:rgba(105,87,228,.12);color:#6957e4;font-weight:600;
+}
+.selected-chip-close{margin-left:3px;cursor:pointer;opacity:.5;font-size:13px}
+
+/* Action Button */
+.action-area{padding:10px 16px}
+.btn-primary{
+  width:100%;padding:14px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#6957e4,#7d6ef0);
+  color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+  box-shadow:0 4px 16px rgba(105,87,228,.3);transition:all .2s;
+}
+.btn-primary:hover{box-shadow:0 6px 20px rgba(105,87,228,.4);transform:translateY(-1px)}
+
+/* Chat Area */
+.chat-section{margin-top:12px}
+.chat-msg{display:flex;gap:8px;margin-bottom:10px}
+.chat-msg.user{flex-direction:row-reverse}
+.chat-av{
+  width:28px;height:28px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-size:14px;flex-shrink:0;
+}
+.chat-msg.assistant .chat-av{background:#e8e5ff}
+.chat-msg.user .chat-av{background:rgba(105,87,228,.15)}
+.chat-bubble{
+  padding:10px 14px;border-radius:16px;font-size:12px;line-height:1.6;
+  max-width:80%;color:#1a1a2e;
+}
+.chat-msg.assistant .chat-bubble{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.chat-msg.user .chat-bubble{background:#6957e4;color:#fff}
+
+/* Result Card */
+.result-card{
+  background:#fff;border-radius:16px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);margin:8px 0 12px;
+}
+.result-header{
+  padding:12px 16px;background:linear-gradient(135deg,rgba(105,87,228,.08),rgba(139,124,240,.05));
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:700;color:#6957e4;
+}
+.result-body{
+  padding:12px 16px;font-size:12px;line-height:1.7;color:#1a1a2e;
+  max-height:140px;overflow-y:auto;
+}
+.result-body strong{color:#6957e4}
+.result-actions{
+  display:flex;gap:8px;padding:10px 16px;border-top:.5px solid rgba(0,0,0,.06);
+  flex-wrap:wrap;
+}
+.result-btn{
+  padding:7px 14px;border-radius:16px;font-size:11px;font-weight:600;
+  border:.5px solid rgba(0,0,0,.1);background:#fff;
+  color:#1a1a2e;cursor:pointer;font-family:inherit;transition:all .15s;
+}
+.result-btn:hover{background:#f5f3ff;border-color:#6957e4;color:#6957e4}
+.result-btn.primary{background:#6957e4;color:#fff;border-color:#6957e4}
+.result-btn.primary:hover{background:#5a48d0}
+
+/* Input Area */
+.input-area{
+  display:flex;align-items:center;gap:6px;padding:8px 12px;
+  background:rgba(255,255,255,.88);backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border-top:.5px solid rgba(0,0,0,.06);
+}
+.attach-btn{
+  width:34px;height:34px;border-radius:50%;background:#f5f4f9;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;border:none;flex-shrink:0;
+}
+.voice-btn{
+  width:34px;height:34px;border-radius:50%;background:#f5f4f9;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;border:none;flex-shrink:0;
+}
+.input-field{
+  flex:1;min-height:38px;border-radius:20px;padding:8px 16px;
+  border:.5px solid rgba(0,0,0,.08);background:#f5f4f9;
+  font-size:13px;outline:none;font-family:inherit;color:#1a1a2e;resize:none;
+}
+.input-field:focus{border-color:#6957e4;background:#fff}
+.send-btn{
+  width:38px;height:38px;border-radius:50%;background:#6957e4;
+  color:#fff;font-size:16px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;border:none;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(105,87,228,.3);transition:all .15s;
+}
+.send-btn:hover{background:#5a48d0;transform:scale(1.05)}
+
+.home-indicator{
+  position:absolute;bottom:4px;left:50%;transform:translateX(-50%);
+  width:120px;height:4px;background:#1a1a2e;border-radius:2px;opacity:.15;
+}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>📶 🔋 91%</span>
+  </div>
+
+  <!-- Agent Header -->
+  <div class="agent-header">
+    <div class="back-btn">←</div>
+    <div>
+      <span class="agent-title">语法中心</span>
+      <span class="agent-sub">Grammar</span>
+    </div>
+  </div>
+
+  <!-- Agent Tabs -->
+  <div class="tabs-wrapper">
+    <button class="tab">📚 教材</button>
+    <button class="tab active">📐 语法</button>
+    <button class="tab">✍️ 作文</button>
+    <button class="tab">📋 组卷</button>
+    <button class="tab">🔬 阅卷</button>
+    <button class="tab">🤖 AI备课</button>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Grammar Categories -->
+    <div class="section-title">语法知识点</div>
+
+    <div class="cat-card">
+      <div class="cat-header open" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+        <span class="cat-name"><span class="cat-ic">🔤</span>词法<span class="cat-count">10项</span></span>
+        <span class="cat-arrow">▼</span>
+      </div>
+      <div class="cat-body open">
+        <button class="chip selected">冠词</button>
+        <button class="chip">名词</button>
+        <button class="chip">代词</button>
+        <button class="chip">数词</button>
+        <button class="chip">介词</button>
+        <button class="chip">连词</button>
+        <button class="chip">形容词</button>
+        <button class="chip">副词</button>
+        <button class="chip">动词</button>
+        <button class="chip">情态动词</button>
+      </div>
+    </div>
+
+    <div class="cat-card">
+      <div class="cat-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+        <span class="cat-name"><span class="cat-ic">⏳</span>时态<span class="cat-count">7项</span></span>
+        <span class="cat-arrow">▼</span>
+      </div>
+      <div class="cat-body">
+        <button class="chip selected">一般过去时</button>
+        <button class="chip">一般现在时</button>
+        <button class="chip">一般将来时</button>
+        <button class="chip">现在进行时</button>
+        <button class="chip">过去进行时</button>
+        <button class="chip">现在完成时</button>
+        <button class="chip">过去完成时</button>
+      </div>
+    </div>
+
+    <div class="cat-card">
+      <div class="cat-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+        <span class="cat-name"><span class="cat-ic">🔗</span>从句<span class="cat-count">6项</span></span>
+        <span class="cat-arrow">▼</span>
+      </div>
+      <div class="cat-body">
+        <button class="chip selected">倒装句</button>
+        <button class="chip">宾语从句</button>
+        <button class="chip">状语从句</button>
+        <button class="chip">定语从句</button>
+        <button class="chip">主语从句</button>
+        <button class="chip">表语从句</button>
+      </div>
+    </div>
+
+    <div class="cat-card">
+      <div class="cat-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+        <span class="cat-name"><span class="cat-ic">📝</span>句式<span class="cat-count">6项</span></span>
+        <span class="cat-arrow">▼</span>
+      </div>
+      <div class="cat-body">
+        <button class="chip">五种基本句型</button>
+        <button class="chip">There be</button>
+        <button class="chip">强调句</button>
+        <button class="chip">省略</button>
+        <button class="chip">反意疑问句</button>
+        <button class="chip">虚拟语气</button>
+      </div>
+    </div>
+
+    <!-- Selected Chips -->
+    <div class="chips-bar">
+      <span class="chips-bar-label">已选：</span>
+      <span class="selected-chip">冠词 <span class="selected-chip-close">✕</span></span>
+      <span class="selected-chip">一般过去时 <span class="selected-chip-close">✕</span></span>
+      <span class="selected-chip">倒装句 <span class="selected-chip-close">✕</span></span>
+    </div>
+
+    <!-- Action -->
+    <div class="action-area">
+      <button class="btn-primary">🤖 AI 生成专项练习（已选 3 项）</button>
+    </div>
+
+    <!-- Chat Section -->
+    <div class="section-title">AI 对话</div>
+    <div class="chat-msg assistant">
+      <div class="chat-av">🎓</div>
+      <div class="chat-bubble">
+        好的！我将为你生成 <strong>冠词、一般过去时、倒装句</strong> 的专项练习。<br><br>📋 难度：中考 | 📝 题型：单选 + 填空 + 改错
+      </div>
+    </div>
+
+    <!-- Result Card -->
+    <div class="result-card">
+      <div class="result-header">✅ 专项练习 — 生成完成</div>
+      <div class="result-body">
+        <strong>一、单项选择（冠词）</strong><br>
+        1. There is ___ "u" in the word "useful".<br>
+        &nbsp;&nbsp;&nbsp;A. a  B. an  C. the  D. /<br>
+        2. Beijing is ___ capital of China.<br>
+        &nbsp;&nbsp;&nbsp;A. a  B. an  C. the  D. /<br>
+        <strong>二、用所给动词的适当形式填空（一般过去时）</strong><br>
+        3. She ___ (go) to the library yesterday.<br>
+        4. They ___ (not see) the film last week.<br>
+        <strong>三、改错（倒装句）</strong><br>
+        5. Only then he realized his mistake.<br>
+        ...
+      </div>
+      <div class="result-actions">
+        <button class="result-btn primary">📥 导出 Word</button>
+        <button class="result-btn">📄 导出 PDF</button>
+        <button class="result-btn">📋 复制</button>
+        <button class="result-btn">🔄 重新生成</button>
+      </div>
+    </div>
+
+    <div class="chat-msg user">
+      <div class="chat-av">👤</div>
+      <div class="chat-bubble">请加上答案解析</div>
+    </div>
+
+    <div class="chat-msg assistant">
+      <div class="chat-av">🎓</div>
+      <div class="chat-bubble">
+        好的！已为所有题目添加<strong>详细解析和解题思路</strong>，标注了北京中考高频考点。你可以导出教师版查看完整解析。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <button class="attach-btn">＋</button>
+    <input class="input-field" placeholder="输入教学需求...">
+    <button class="voice-btn">🎤</button>
+    <button class="send-btn">➤</button>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+// Make chips clickable
+document.querySelectorAll('.chip').forEach(c => {
+  c.addEventListener('click', function(){this.classList.toggle('selected')})
+})
+// Make category headers toggle
+document.querySelectorAll('.cat-header').forEach(h => {
+  h.addEventListener('click', function(){
+    this.classList.toggle('open');
+    this.nextElementSibling.classList.toggle('open');
+  })
+})
+</script>
+</body>
+</html>

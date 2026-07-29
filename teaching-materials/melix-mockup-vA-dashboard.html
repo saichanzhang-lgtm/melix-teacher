@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Melix Teacher — Dashboard Mockup</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1a1a2e;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif}
+
+.phone{
+  width:393px;height:852px;
+  background:linear-gradient(180deg,#f0eef8 0%,#ecebf5 20%,#e8e6f4 100%);
+  border-radius:44px;
+  overflow:hidden;
+  position:relative;
+  box-shadow:0 0 0 3px #1a1a2e,0 0 0 6px #2d2d44,0 0 0 8px #1a1a2e,0 20px 60px rgba(0,0,0,.5);
+}
+
+/* Status Bar */
+.status-bar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 28px 0;font-size:12px;font-weight:600;color:#1a1a2e;
+}
+
+/* Header */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 20px 12px;
+}
+.logo-area{display:flex;align-items:center;gap:8px}
+.logo-icon{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,#6957e4,#8b7cf0);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:14px;font-weight:700;
+}
+.logo-text{font-size:15px;font-weight:700;color:#1a1a2e;letter-spacing:-.2px}
+.header-right{display:flex;align-items:center;gap:12px}
+.notif-btn{
+  width:34px;height:34px;border-radius:50%;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);position:relative;
+}
+.notif-dot{
+  position:absolute;top:6px;right:6px;width:8px;height:8px;
+  border-radius:50%;background:#ff4757;border:2px solid #fff;
+}
+.avatar{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,#6957e4,#a89bf8);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:16px;
+}
+
+/* Content */
+.content{padding:0 16px;overflow-y:auto;height:calc(852px - 160px)}
+
+/* Hero Card */
+.hero{
+  background:linear-gradient(135deg,#6957e4 0%,#7d6ef0 40%,#a89bf8 100%);
+  border-radius:20px;padding:22px 20px;color:#fff;margin-bottom:16px;
+  position:relative;overflow:hidden;
+}
+.hero::after{
+  content:'';position:absolute;top:-30px;right:-20px;
+  width:100px;height:100px;border-radius:50%;
+  background:rgba(255,255,255,.08);
+}
+.hero::before{
+  content:'';position:absolute;bottom:-20px;left:60%;
+  width:60px;height:60px;border-radius:50%;
+  background:rgba(255,255,255,.05);
+}
+.hero-greeting{font-size:20px;font-weight:700;position:relative;z-index:1;letter-spacing:-.3px}
+.hero-sub{font-size:13px;opacity:.85;margin-top:4px;position:relative;z-index:1}
+
+/* Section */
+.section{margin-bottom:16px}
+.section-title{
+  font-size:11px;font-weight:700;color:#8e8ca0;
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;
+}
+
+/* Task Grid */
+.task-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.task-item{
+  background:#fff;border-radius:16px;padding:14px 6px;
+  text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.04);
+  cursor:pointer;transition:all .2s;
+}
+.task-item:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(105,87,228,.12)}
+.task-ic{font-size:20px;margin-bottom:4px}
+.task-lb{font-size:10px;font-weight:600;color:#1a1a2e}
+.task-num{font-size:18px;font-weight:800;color:#6957e4;margin-bottom:2px}
+
+/* Student Card */
+.student-card{
+  background:#fff;border-radius:18px;padding:16px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);display:flex;
+  align-items:center;gap:14px;cursor:pointer;transition:all .2s;
+}
+.student-card:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(105,87,228,.1)}
+.student-av{
+  width:46px;height:46px;border-radius:50%;
+  background:linear-gradient(135deg,#6957e4,#a89bf8);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;color:#fff;flex-shrink:0;
+}
+.student-info{flex:1}
+.student-name{font-size:14px;font-weight:700;color:#1a1a2e}
+.student-detail{font-size:11px;color:#8e8ca0;margin-top:1px}
+.student-progress{display:flex;align-items:center;gap:8px;margin-top:4px}
+.progress-bar{flex:1;height:5px;background:#eee;border-radius:3px;overflow:hidden;max-width:100px}
+.progress-fill{height:100%;background:#6957e4;border-radius:3px;width:82%}
+.progress-pct{font-size:12px;font-weight:700;color:#6957e4}
+.continue-btn{
+  padding:6px 14px;border-radius:14px;
+  background:rgba(105,87,228,.08);color:#6957e4;
+  font-size:11px;font-weight:600;border:none;cursor:pointer;
+}
+
+/* Workbench Grid */
+.wb-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.wb-item{
+  background:#fff;border-radius:16px;padding:14px 10px;
+  text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.04);
+  cursor:pointer;transition:all .2s;
+}
+.wb-item:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(105,87,228,.1)}
+.wb-ic{font-size:22px;margin-bottom:4px}
+.wb-title{font-size:11px;font-weight:600;color:#1a1a2e}
+
+/* Recent Work */
+.recent-list{display:flex;flex-direction:column;gap:6px}
+.recent-item{
+  background:#fff;border-radius:14px;padding:13px 16px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);display:flex;
+  align-items:center;gap:10px;cursor:pointer;transition:all .2s;
+}
+.recent-item:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(105,87,228,.08)}
+.recent-ic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.recent-ic.purple{background:rgba(105,87,228,.1)}
+.recent-ic.blue{background:rgba(100,180,255,.1)}
+.recent-ic.green{background:rgba(80,200,160,.1)}
+.recent-title{flex:1;font-size:13px;font-weight:600;color:#1a1a2e}
+.recent-time{font-size:10px;color:#8e8ca0;flex-shrink:0}
+
+/* Bottom Nav */
+.bottom-nav{
+  position:absolute;bottom:0;left:0;right:0;height:72px;
+  background:rgba(255,255,255,.88);backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border-top:.5px solid rgba(0,0,0,.06);
+  display:flex;padding:0 8px;padding-bottom:8px;
+}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
+.nav-item.active .nav-ic{color:#6957e4}
+.nav-item.active .nav-lb{color:#6957e4;font-weight:700}
+.nav-ic{font-size:18px;color:#8e8ca0;transition:color .2s}
+.nav-lb{font-size:9px;color:#8e8ca0;transition:color .2s;font-weight:500}
+
+/* FAB */
+.fab{
+  position:absolute;bottom:84px;right:16px;width:50px;height:50px;
+  border-radius:50%;background:linear-gradient(135deg,#6957e4,#8b7cf0);
+  color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(105,87,228,.4);cursor:pointer;
+  transition:all .2s;
+}
+.fab:hover{transform:scale(1.05);box-shadow:0 8px 24px rgba(105,87,228,.5)}
+
+/* Home indicator */
+.home-indicator{
+  position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
+  width:120px;height:4px;background:#1a1a2e;border-radius:2px;opacity:.15;
+}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>📶 🔋 91%</span>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-icon">M</div>
+      <div class="logo-text">Melix Teacher</div>
+    </div>
+    <div class="header-right">
+      <div class="notif-btn">
+        🔔<div class="notif-dot"></div>
+      </div>
+      <div class="avatar">👩‍🏫</div>
+    </div>
+  </div>
+
+  <!-- Scroll Content -->
+  <div class="content">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-greeting">Hi, Amelia 👋</div>
+      <div class="hero-sub">今天继续备课吗？</div>
+    </div>
+
+    <!-- Task Section -->
+    <div class="section">
+      <div class="section-title">今日任务</div>
+      <div class="task-grid">
+        <div class="task-item">
+          <div class="task-ic">📖</div>
+          <div class="task-num">3</div>
+          <div class="task-lb">备课</div>
+        </div>
+        <div class="task-item">
+          <div class="task-ic">📋</div>
+          <div class="task-num">2</div>
+          <div class="task-lb">组卷</div>
+        </div>
+        <div class="task-item">
+          <div class="task-ic">🔬</div>
+          <div class="task-num">12</div>
+          <div class="task-lb">阅卷</div>
+        </div>
+        <div class="task-item">
+          <div class="task-ic">✍️</div>
+          <div class="task-num">5</div>
+          <div class="task-lb">作文</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student -->
+    <div class="section">
+      <div class="section-title">最近学生</div>
+      <div class="student-card">
+        <div class="student-av">👩</div>
+        <div class="student-info">
+          <div class="student-name">Nandy</div>
+          <div class="student-detail">PEP 六年级 · 昌平区霍营小学</div>
+          <div class="student-progress">
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+            <span class="progress-pct">82%</span>
+          </div>
+        </div>
+        <button class="continue-btn">继续学习 →</button>
+      </div>
+    </div>
+
+    <!-- AI Workbench -->
+    <div class="section">
+      <div class="section-title">AI 工作台</div>
+      <div class="wb-grid">
+        <div class="wb-item">
+          <div class="wb-ic">📚</div>
+          <div class="wb-title">教材教学</div>
+        </div>
+        <div class="wb-item">
+          <div class="wb-ic">📐</div>
+          <div class="wb-title">语法中心</div>
+        </div>
+        <div class="wb-item">
+          <div class="wb-ic">✍️</div>
+          <div class="wb-title">作文中心</div>
+        </div>
+        <div class="wb-item">
+          <div class="wb-ic">📋</div>
+          <div class="wb-title">智能组卷</div>
+        </div>
+        <div class="wb-item">
+          <div class="wb-ic">🔬</div>
+          <div class="wb-title">智能阅卷</div>
+        </div>
+        <div class="wb-item">
+          <div class="wb-ic">🤖</div>
+          <div class="wb-title">AI 备课</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Work -->
+    <div class="section">
+      <div class="section-title">最近工作</div>
+      <div class="recent-list">
+        <div class="recent-item">
+          <div class="recent-ic purple">📖</div>
+          <div class="recent-title">Unit 5 — Lesson 2 教案</div>
+          <div class="recent-time">2小时前</div>
+        </div>
+        <div class="recent-item">
+          <div class="recent-ic blue">📐</div>
+          <div class="recent-title">一般过去时 — 专项练习</div>
+          <div class="recent-time">昨天</div>
+        </div>
+        <div class="recent-item">
+          <div class="recent-ic green">✍️</div>
+          <div class="recent-title">邀请信 — 写作指导</div>
+          <div class="recent-time">2天前</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:20px"></div>
+  </div>
+
+  <!-- FAB -->
+  <div class="fab">🤖</div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item active">
+      <span class="nav-ic">🏠</span>
+      <span class="nav-lb">首页</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-ic">📚</span>
+      <span class="nav-lb">工作台</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-ic">🤖</span>
+      <span class="nav-lb">AI</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-ic">👨‍🎓</span>
+      <span class="nav-lb">学生</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-ic">👤</span>
+      <span class="nav-lb">我的</span>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+</body>
+</html>

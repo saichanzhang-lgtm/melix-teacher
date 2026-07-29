@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  tutor:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - ANTHROPIC_AUTH_TOKEN=${ANTHROPIC_AUTH_TOKEN}
+      - ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-https://api.deepseek.com/anthropic}
+      - ANTHROPIC_MODEL=${ANTHROPIC_MODEL:-deepseek-v4-pro}
+      - INVITE_MODE=${INVITE_MODE:-false}
+    volumes:
+      - ./data:/app/data
+      - ./references:/app/references
+      - ./CLAUDE.md:/app/CLAUDE.md
+    restart: unless-stopped

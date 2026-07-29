@@ -1,0 +1,11 @@
+{
+  "name": "beijing-english-tutor-web",
+  "version": "1.0.0",
+  "description": "北京K12英语AI家教 — Web服务",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {},
+  "license": "UNLICENSED"
+}
