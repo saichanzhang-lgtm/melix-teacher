@@ -21,9 +21,12 @@ function writeJSON(filePath, data) {
   try {
     const dir = path.dirname(filePath);
     ensureDir(dir);
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    const tmpPath = filePath + '.tmp.' + process.pid;
+    fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2));
+    fs.renameSync(tmpPath, filePath);
     return true;
   } catch (e) {
+    try { fs.unlinkSync(filePath + '.tmp.' + process.pid); } catch (_) {}
     return false;
   }
 }

@@ -37,6 +37,7 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const os = require('os');
+const zlib = require('zlib');
 
 // 加载模块
 const cors = require('./middleware/cors');
@@ -99,10 +100,21 @@ function getIPAddresses() {
   return addresses;
 }
 
+const MAX_BODY_SIZE = 1024 * 1024; // 1MB 请求体上限，防止 DoS
+
 function parseBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
-    req.on('data', chunk => { body += chunk; });
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > MAX_BODY_SIZE) {
+        req.destroy();
+        reject(new Error('请求体过大（上限1MB）'));
+        return;
+      }
+      body += chunk;
+    });
     req.on('end', () => {
       try {
         resolve(body ? JSON.parse(body) : {});
@@ -114,18 +126,61 @@ function parseBody(req) {
   });
 }
 
-function serveStatic(filePath, res) {
+// 可压缩的 MIME 类型
+const COMPRESSIBLE = /^text\/|^application\/(javascript|json|xml|xhtml|xml)|^image\/svg/;
+// 长期缓存的文件路径模式（vendor 库等不常变的静态资源）
+const LONG_CACHE = /\/lib\/vendor\/|\.png$|\.jpg$|\.jpeg$|\.svg$|\.ico$|\.woff2?$/;
+
+function serveStatic(filePath, res, req) {
   const ext = path.extname(filePath);
   const mime = MIME_TYPES[ext] || 'application/octet-stream';
 
-  try {
-    const content = fs.readFileSync(filePath);
-    res.writeHead(200, { 'Content-Type': mime, 'Cache-Control': 'no-cache' });
-    res.end(content);
-  } catch (e) {
-    res.writeHead(404);
-    res.end('Not Found');
-  }
+  fs.stat(filePath, (err, stats) => {
+    if (err || !stats.isFile()) {
+      res.writeHead(404);
+      res.end('Not Found');
+      return;
+    }
+
+    // 协商缓存：If-Modified-Since
+    const since = req.headers['if-modified-since'];
+    if (since) {
+      const sinceTime = new Date(since).getTime();
+      if (Math.floor(stats.mtimeMs / 1000) <= Math.floor(sinceTime / 1000)) {
+        res.writeHead(304);
+        res.end();
+        return;
+      }
+    }
+
+    // 缓存策略：vendor 库和图片长期缓存 30 天，HTML/CSS/JS 不缓存（开发期）
+    const cacheControl = LONG_CACHE.test(filePath)
+      ? 'public, max-age=2592000'  // 30天
+      : 'no-cache';
+
+    const headers = {
+      'Content-Type': mime,
+      'Cache-Control': cacheControl,
+      'Last-Modified': stats.mtime.toUTCString(),
+    };
+
+    // gzip 压缩（仅对可压缩类型且客户端支持）
+    const acceptEncoding = req.headers['accept-encoding'] || '';
+    const shouldCompress = COMPRESSIBLE.test(mime) && /gzip/.test(acceptEncoding) && stats.size > 1024;
+
+    if (shouldCompress) {
+      headers['Content-Encoding'] = 'gzip';
+      res.writeHead(200, headers);
+      const raw = fs.createReadStream(filePath);
+      const gzip = zlib.createGzip({ level: 6 });
+      raw.pipe(gzip).pipe(res);
+      raw.on('error', () => { res.end(); });
+    } else {
+      headers['Content-Length'] = stats.size;
+      res.writeHead(200, headers);
+      fs.createReadStream(filePath).pipe(res);
+    }
+  });
 }
 
 // ═══════════════════════════════════════
@@ -152,7 +207,18 @@ function setupFirewall() {
 // HTTP 服务器 — 路由注册
 // ═══════════════════════════════════════
 const server = http.createServer(async (req, res) => {
-  console.log('[' + new Date().toISOString().slice(11, 19) + ']', req.method, req.url);
+  // 请求超时：60秒无响应则断开（AI 流式响应除外，chat 路由自行管理）
+  req.setTimeout(60000, () => {
+    if (!res.headersSent) {
+      res.writeHead(408, JSON_HEADER);
+      res.end(JSON.stringify({ error: '请求超时' }));
+    }
+    req.destroy();
+  });
+
+  if (ENV !== 'production') {
+    console.log('[' + new Date().toISOString().slice(11, 19) + ']', req.method, req.url);
+  }
 
   // CORS
   cors(req, res);
@@ -314,7 +380,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  serveStatic(filePath, res);
+  serveStatic(filePath, res, req);
 });
 
 // ═══════════════════════════════════════

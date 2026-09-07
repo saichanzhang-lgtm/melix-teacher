@@ -9,6 +9,7 @@ const FALLBACK_MODEL = process.env.ANTHROPIC_FALLBACK_MODEL || '';
 
 const MAX_RETRIES = 2;
 const RETRY_DELAYS = [1000, 3000]; // 指数退避
+const REQUEST_TIMEOUT = 120000; // 120秒超时，防止 API 挂起导致连接泄漏
 
 function isRetryableError(statusCode, error) {
   if (error && error.code === 'ECONNRESET') return true;
@@ -104,7 +105,27 @@ function streamRequest(systemPrompt, messages, model, res) {
       let buffer = '';
       let streamEnded = false;
 
+      // 响应超时：如果 120 秒内没有数据，终止请求
+      let responseTimer = setTimeout(() => {
+        if (!streamEnded) {
+          streamEnded = true;
+          apiRes.destroy();
+          apiReq.destroy();
+          reject(new Error('AI 响应超时（120秒无数据）'));
+        }
+      }, REQUEST_TIMEOUT);
+
       apiRes.on('data', (chunk) => {
+        clearTimeout(responseTimer);
+        responseTimer = setTimeout(() => {
+          if (!streamEnded) {
+            streamEnded = true;
+            apiRes.destroy();
+            apiReq.destroy();
+            reject(new Error('AI 响应超时（120秒无数据）'));
+          }
+        }, REQUEST_TIMEOUT);
+
         buffer += chunk.toString();
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
@@ -148,6 +169,7 @@ function streamRequest(systemPrompt, messages, model, res) {
       });
 
       apiRes.on('end', () => {
+        clearTimeout(responseTimer);
         if (!streamEnded) {
           res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
         }
@@ -155,7 +177,7 @@ function streamRequest(systemPrompt, messages, model, res) {
         resolve();
       });
 
-      apiRes.on('error', reject);
+      apiRes.on('error', (e) => { clearTimeout(responseTimer); reject(e); });
     });
 
     apiReq.on('error', (e) => {

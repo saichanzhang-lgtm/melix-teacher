@@ -218,9 +218,9 @@ async function handleUpdateStudent(req, res, studentId, data) {
   }
 
   // 合并更新（保护 id 和 createdAt）
-  const protected = ['id', 'createdAt'];
+  const protectedFields = ['id', 'createdAt'];
   for (const [key, value] of Object.entries(data)) {
-    if (protected.includes(key)) continue;
+    if (protectedFields.includes(key)) continue;
     student[key] = value;
   }
   student.updatedAt = new Date().toISOString();

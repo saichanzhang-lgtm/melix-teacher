@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#7A6CF5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Melix Teacher">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/logo.png">
+<link rel="icon" type="image/png" href="/logo.png">
 <title>Melix Teacher — AI Teaching Workspace</title>
 <style>
 :root{--pri:#7A6CF5;--pri-light:#F0ECFD;--pri-dark:#5A4BD4;--pri-hover:#F7F4FF;--pri-active-bg:#EDE9FD;--pri-active-border:#CFC5F8;--pri-active-text:#5A4BD4;--accent:#47C4B8;--accent-light:#EDFAF8;--bg:#F8F8FA;--surface:#FFFFFF;--text:#1F2430;--text2:#8B8FA0;--border:#EAEBF0;--shadow:0 1px 2px rgba(0,0,0,.04);--radius:12px;--radius-sm:8px;--input-bg:#F5F5F7;--success:#47C4B8;--nav-w:300px}
@@ -37,6 +44,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .sb-prog-fill{height:100%;background:var(--pri);border-radius:2px}
 .sb-prog-lbl{font-size:.6rem;color:var(--text2);white-space:nowrap}
 .sb-empty{padding:8px 14px;font-size:.72rem;color:var(--text2);text-align:center}
+.sb-search{width:calc(100% - 24px);margin:4px 12px 6px;padding:6px 10px;font-size:.72rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;font-family:inherit;box-sizing:border-box}
+.sb-search:focus{border-color:var(--pri)}
 
 /* Agent items */
 .sb-agent{display:flex;align-items:center;gap:10px;width:100%;padding:9px 16px;border:none;border-left:3px solid transparent;background:transparent;cursor:pointer;font-size:.8rem;color:var(--text);transition:all .15s;font-family:inherit;text-align:left}
@@ -252,6 +261,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
   .m-gram-cat{font-size:.7rem;font-weight:700;color:var(--m-sub);width:100%;margin-top:4px}
   .m-gram-chip{padding:7px 14px;border-radius:18px;font-size:.75rem;border:0.5px solid var(--m-border);background:var(--m-card);color:var(--m-text);cursor:pointer;transition:all .15s;white-space:nowrap}
   .m-gram-chip.sel{background:var(--m-pri);color:#fff;border-color:var(--m-pri)}
+  .m-vocab-stats{font-size:.75rem;color:var(--m-sub);padding:6px 0;text-align:center;background:var(--m-card);border-radius:var(--m-radius-sm);margin-bottom:8px}
 
   /* Chat Messages — ChatGPT Mobile Style */
   .m-chat-area{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
@@ -369,12 +379,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
       </div>
       <div class="sb-sec">
         <div class="sb-sec-hd"><span class="sb-sec-lbl">💬 当前 Agent 会话</span><button class="sb-sec-btn" onclick="newConv()">➕ 新建</button></div>
+        <input class="sb-search" id="sbConvSearch" type="text" placeholder="🔍 搜索会话..." oninput="renderConvList()">
         <div id="sbConvList"><div class="sb-empty">暂无会话记录</div></div>
       </div>
       <div class="sb-sec">
         <div class="sb-sec-hd"><span class="sb-sec-lbl">⚙ 设置</span></div>
         <button class="sb-set" onclick="toggleKB()"><span class="sb-set-ic">📊</span>知识库状态</button>
         <button class="sb-set" onclick="cycleDifficulty()"><span class="sb-set-ic">📊</span>难度：<span id="sbDiffLbl">自动</span></button>
+        <button class="sb-set" onclick="sessionCloudRestore()"><span class="sb-set-ic">☁️</span>恢复云端会话</button>
       </div>
     </div>
   </nav>
@@ -556,6 +568,7 @@ function saveAll(){
     sessions:state.sessions,teaching:state.teaching,
     vocab:{tab:state.vocab.tab,step:state.vocab.step,bankId:state.vocab.bankId,count:state.vocab.count,level:state.vocab.level,stage:state.vocab.stage}
   }))}catch(e){}
+  sessionCloudSync();
 }
 function loadAll(){
   try{
@@ -659,7 +672,13 @@ function exportDoc(section){
 // ═══════════════════════════════════════
 function convTitle(msgs){
   if(!msgs||!msgs.length)return'新会话';
-  for(let i=0;i<msgs.length;i++){if(msgs[i].role==='user'){let t=msgs[i].content.replace(/【[^】]*】/g,'').trim();if(t.length>25)t=t.slice(0,25)+'…';return t||'新会话'}}
+  for(let i=0;i<msgs.length;i++){if(msgs[i].role==='user'){
+    let t=msgs[i].content.replace(/【[^】]*】/g,'').trim();
+    t=t.replace(/^你是[^。]{2,30}。/,'').replace(/^请/,'').trim();
+    t=t.split(/[\n。]/)[0].trim();
+    if(t.length>25)t=t.slice(0,25)+'…';
+    return t||'新会话';
+  }}
   return'新会话';
 }
 function newConv(){
@@ -698,15 +717,40 @@ function renderConvList(){
     s.conversations=s.conversations.filter(function(c){return !c.agent||c.agent===state.agent});
   }
   if(!s.conversations||!s.conversations.length){el.innerHTML='<div class="sb-empty">暂无会话记录</div>';return}
-  const convs=s.conversations.filter(function(c){return c.agent===state.agent}).reverse();
+  // Search filter
+  const q=(document.getElementById('sbConvSearch')||{}).value||'';
+  const kw=q.trim().toLowerCase();
+  let convs=s.conversations.filter(function(c){return c.agent===state.agent}).reverse();
+  if(kw)convs=convs.filter(function(c){return(c.title||'').toLowerCase().includes(kw)});
+  // Favorites first
+  convs.sort(function(a,b){return(b.fav?1:0)-(a.fav?1:0)});
+  if(!convs.length){el.innerHTML='<div class="sb-empty">无匹配会话</div>';return}
   const now=Date.now(),aid=s.activeConvId;
   el.innerHTML=convs.map(c=>{
     const isActive=c.id===aid;
     let ts='';const diff=now-c.createdAt;
     if(diff<86400000)ts='今天';else if(diff<172800000)ts='昨天';else if(diff<604800000)ts='本周';else ts=new Date(c.createdAt).toLocaleDateString('zh-CN',{month:'short',day:'numeric'});
     const title=c.title||convTitle(c.messages);
-    return'<div class="sb-conv'+(isActive?' active':'')+'" onclick="switchConv(\''+c.id+'\')"><span class="sb-conv-ic">'+(isActive?'💬':'📄')+'</span><span class="sb-conv-tl">'+title+'</span><span class="sb-conv-tm">'+ts+'</span><span class="sb-conv-act"><button class="sb-conv-act-btn" onclick="event.stopPropagation();deleteConv(\''+c.id+'\')">✕</button></span></div>';
+    return'<div class="sb-conv'+(isActive?' active':'')+'" onclick="switchConv(\''+c.id+'\')">'+
+      '<span class="sb-conv-ic">'+(c.fav?'⭐':isActive?'💬':'📄')+'</span>'+
+      '<span class="sb-conv-tl">'+title+'</span>'+
+      '<span class="sb-conv-tm">'+ts+'</span>'+
+      '<span class="sb-conv-act">'+
+        '<button class="sb-conv-act-btn" title="收藏" onclick="event.stopPropagation();toggleFav(\''+c.id+'\')">'+(c.fav?'★':'☆')+'</button>'+
+        '<button class="sb-conv-act-btn" title="重命名" onclick="event.stopPropagation();renameConv(\''+c.id+'\')">✏</button>'+
+        '<button class="sb-conv-act-btn" title="删除" onclick="event.stopPropagation();deleteConv(\''+c.id+'\')">✕</button>'+
+      '</span></div>';
   }).join('');
+}
+function toggleFav(id){
+  const s=cur();const c=(s.conversations||[]).find(x=>x.id===id);
+  if(c){c.fav=!c.fav;saveAll();renderConvList()}
+}
+function renameConv(id){
+  const s=cur();const c=(s.conversations||[]).find(x=>x.id===id);
+  if(!c)return;
+  const name=prompt('重命名会话：',c.title||'');
+  if(name!==null&&name.trim()){c.title=name.trim();saveAll();renderConvList()}
 }
 
 // ═══════════════════════════════════════
@@ -1224,6 +1268,39 @@ function vocabCloudRestore(){
 }
 function vocabSetCloudStatus(s){var el=document.getElementById('vocabCloudStatus');if(el)el.textContent=s==='ok'?' · ☁️ 已云端备份':' · ⚠️ 云备份失败';}
 
+// ═══════ SESSION CLOUD SYNC (P3: 利用现有 /api/user/data 实现会话云备份) ═══════
+var _sessSyncTimer=null;
+function sessionCloudSync(){
+  clearTimeout(_sessSyncTimer);
+  _sessSyncTimer=setTimeout(function(){
+    var token=localStorage.getItem('tutor_token');if(!token)return;
+    fetch('/api/user/data',{headers:{'Authorization':'Bearer '+token}}).then(function(r){return r.json()}).then(function(cur){
+      cur=cur||{};
+      // 只备份会话元数据+最近20条消息，避免超大
+      var lite={};
+      for(var ag in state.sessions){
+        var s=state.sessions[ag];
+        lite[ag]={activeConvId:s.activeConvId,conversations:(s.conversations||[]).map(function(c){
+          return{id:c.id,agent:c.agent,title:c.title,fav:c.fav,createdAt:c.createdAt,messages:(c.messages||[]).slice(-20)};
+        })};
+      }
+      cur.sessions=lite;
+      return fetch('/api/user/data',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(cur)});
+    }).catch(function(){});
+  },5000);
+}
+function sessionCloudRestore(){
+  var token=localStorage.getItem('tutor_token');if(!token){alert('请先登录后再恢复');return}
+  if(!confirm('从云端恢复会话将覆盖本地数据，确定？'))return;
+  fetch('/api/user/data',{headers:{'Authorization':'Bearer '+token}}).then(function(r){return r.json()}).then(function(cur){
+    if(cur&&cur.sessions){
+      for(var ag in cur.sessions){state.sessions[ag]=cur.sessions[ag]}
+      saveAll();renderConvList();renderMsgs();
+      alert('✅ 已从云端恢复会话数据');
+    }else{alert('云端暂无会话备份')}
+  }).catch(function(){alert('恢复失败，请检查网络')});
+}
+
 // ── 出题引擎 ──
 function sampleTargets(bank,count){
   var items=(bank&&bank.items)||[];
@@ -1616,7 +1693,7 @@ async function sendMsg(){
     finishStreaming();
     const conv=curConv();if(conv&&conv.messages.length>0)conv.title=convTitle(conv.messages);
     dbg('✅ 生成完成 ('+full.length+' 字)','ok');
-    renderConvList();
+    renderConvList();saveAll();
   }catch(e){
     finishStreaming();
     dbg('❌ 错误: '+e.message,'err');
@@ -1709,7 +1786,7 @@ var M={ // Mobile App Namespace
 
   // ═══════ STORE MANAGEMENT ═══════
   _loadStores:function(){
-    var agents=['grammar','exam','writing'];
+    var agents=['grammar','exam','writing','vocabulary'];
     agents.forEach(function(a){
       try{
         var raw=localStorage.getItem('melix_'+a);
@@ -1775,11 +1852,11 @@ var M={ // Mobile App Namespace
     var sd=student==='nandy'?{name:'Nandy',av:'👩',meta:'昌平区 · 六年级 · 小升初',prog:82}
       :student==='yiyi'?{name:'熠熠',av:'👧',meta:'海淀区 · 初一 · 初二提前学',prog:65}
       :{name:'选择学生',av:'🎓',meta:'点击切换',prog:0};
-    var agents=['grammar','exam','writing'];
-    var icons={grammar:'📐',exam:'📋',writing:'✍️'};
-    var names={grammar:'语法中心',exam:'智能组卷',writing:'作文中心'};
-    var subs={grammar:'语法讲解 · 专项练习',exam:'生成试卷 · 模拟考试',writing:'作文模板 · 批改指导'};
-    var counts={grammar:4,exam:2,writing:5};
+    var agents=['grammar','exam','writing','vocabulary'];
+    var icons={grammar:'📐',exam:'📋',writing:'✍️',vocabulary:'📚'};
+    var names={grammar:'语法中心',exam:'智能组卷',writing:'作文中心',vocabulary:'词汇检测'};
+    var subs={grammar:'语法讲解 · 专项练习',exam:'生成试卷 · 模拟考试',writing:'作文模板 · 批改指导',vocabulary:'语境出题 · 错词复习'};
+    var counts={grammar:4,exam:2,writing:5,vocabulary:3};
     // Recent work
     var recent=[];
     agents.forEach(function(a){
@@ -1813,7 +1890,8 @@ var M={ // Mobile App Namespace
     var agents=[
       {id:'grammar',ic:'📐',name:'语法中心',desc:'语法讲解 · 专项练习 · 阶梯刷题'},
       {id:'writing',ic:'✍️',name:'作文中心',desc:'作文模板 · 智能批改 · 命题'},
-      {id:'exam',ic:'📋',name:'智能组卷',desc:'生成试卷 · 模拟考试 · 单元测试'}
+      {id:'exam',ic:'📋',name:'智能组卷',desc:'生成试卷 · 模拟考试 · 单元测试'},
+      {id:'vocabulary',ic:'📚',name:'词汇检测',desc:'语境出题 · 错词复习 · 词库管理'}
     ];
     app.innerHTML=
       '<div class="m-ws-header">📚 工作台</div>'+
@@ -1827,7 +1905,7 @@ var M={ // Mobile App Namespace
   _renderAgent:function(app,agentId){
     M._agent=agentId;
     var store=M.stores[agentId];if(!store){M.stores[agentId]={conversations:[],activeConvId:null,config:{}};store=M.stores[agentId]}
-    var names={grammar:'📐 语法中心',exam:'📋 智能组卷',writing:'✍️ 作文中心'};
+    var names={grammar:'📐 语法中心',exam:'📋 智能组卷',writing:'✍️ 作文中心',vocabulary:'📚 词汇检测'};
     var name=names[agentId]||agentId;
     var conv=M._curConv();
 
@@ -1950,6 +2028,21 @@ var M={ // Mobile App Namespace
       h+='<select class="cfg-sel" id="mWriteType"><option value="">作文类型</option><option value="看图写话">看图写话</option><option value="书信">书信</option><option value="演讲稿">演讲稿</option><option value="议论文">议论文</option><option value="记叙文">记叙文</option><option value="读后续写">读后续写</option><option value="开放作文">开放作文</option></select>';
       h+='<select class="cfg-sel" id="mWriteAction"><option value="">操作</option><option value="命题">作文命题</option><option value="模板">作文模板</option><option value="批改">作文批改</option></select>';
       h+='<button class="cfg-btn" onclick="M._applyWriting()">✍️ 开始</button>';
+    }else if(agentId==='vocabulary'){
+      VocabStore.load();
+      var banks=VocabStore.listBanks();
+      var st=VocabStore.stats();
+      h+='<div class="m-vocab-stats">词库 '+st.bankCount+' 个 · '+st.wordCount+' 词 · 错词 '+st.wrongCount+'</div>';
+      if(banks.length){
+        h+='<select class="cfg-sel" id="mVocabBank">';
+        banks.forEach(function(b){h+='<option value="'+b.id+'">'+b.name+' ('+b.count+'词)</option>'});
+        h+='</select>';
+        h+='<select class="cfg-sel" id="mVocabCount"><option value="10">10题</option><option value="20" selected>20题</option><option value="30">30题</option><option value="50">50题</option></select>';
+        h+='<button class="cfg-btn" onclick="M._applyVocab(\'test\')">📝 生成词汇检测</button>';
+        if(st.wrongCount>0)h+='<button class="cfg-btn" style="margin-top:6px;background:#e74c3c" onclick="M._applyVocab(\'review\')">🔄 错词复习 ('+st.wrongCount+'词)</button>';
+      }else{
+        h+='<div style="padding:12px;color:#999;font-size:13px;text-align:center">暂无词库，请在 PC 端上传词表<br><small>支持 Excel / Word / CSV / TXT</small></div>';
+      }
     }
     return h;
   },
@@ -1966,6 +2059,7 @@ var M={ // Mobile App Namespace
   _getTopicLabel:function(agentId){
     var s=M.stores[agentId];if(!s)return'';
     if(agentId==='grammar'){var sel=s.config.selected||[];return sel.length?sel.slice(0,2).join('、')+(sel.length>2?'…':''):''}
+    if(agentId==='vocabulary'){VocabStore.load();var st=VocabStore.stats();return st.wordCount?st.wordCount+'词':''}
     return'';
   },
   _applyGrammar:function(){
@@ -1994,6 +2088,27 @@ var M={ // Mobile App Namespace
     else if(action==='模板')msg='你是北京市英语作文教学专家。请为'+type+'生成作文模板。输出：基础模板+高分模板+万能句型+高级替换表达+评分标准。';
     else if(action==='批改')msg='你是北京市英语作文阅卷专家。请批改以下'+type+'作文。输出：总评分+逐句修改版+修改原因+高分范文+可积累表达。\n\n[在此粘贴学生作文]';
     else msg='你是北京市英语写作教学专家。请讲解'+type+'写作方法。输出：文体特征+结构框架+常用句型+范文2篇+评分要点+常见错误。';
+    var inp=document.getElementById('mChatInput');if(inp)inp.value=msg;
+    var cfg=document.getElementById('mAgentConfig');if(cfg)cfg.style.display='none';
+    M._sendMsg();
+  },
+  _applyVocab:function(mode){
+    VocabStore.load();
+    var msg='';
+    if(mode==='review'){
+      var wrong=VocabStore.wrongList();
+      if(!wrong.length){alert('暂无错词');return}
+      var words=wrong.slice(0,50).map(function(it){return it.word+' — '+(it.meaning||'')}).join('\n');
+      msg='你是北京市K12英语词汇命题专家。以下是学生错词本，请针对这些错词生成复习检测题（语境单选），每题挖空唯一对应目标词。输出【试卷版】→【答案版】→【教师版（含错因分析）】。\n\n【错词列表】\n'+words;
+    }else{
+      var bankId=document.getElementById('mVocabBank')?.value;
+      var bank=VocabStore.getBank(bankId);
+      if(!bank){alert('请选择词库');return}
+      var count=+(document.getElementById('mVocabCount')?.value||20);
+      var items=(bank.items||[]).slice(0,200);
+      var words=items.map(function(it){return it.word+' — '+(it.meaning||'')}).join('\n');
+      msg='你是北京市K12英语词汇命题专家。基于【上传词库】生成'+count+'道词汇语境单选题。要求：完整英文句子挖空，挖空唯一对应目标词；四选项词性一致、语义相关、长度相近；正确答案ABCD随机分布。输出【试卷版】→【答案版】→【教师版（含逐题解析+考查词列表）】。\n\n【词库：'+bank.name+'，共'+items.length+'词，取前'+Math.min(count*2,items.length)+'词出题】\n'+words.slice(0,3000);
+    }
     var inp=document.getElementById('mChatInput');if(inp)inp.value=msg;
     var cfg=document.getElementById('mAgentConfig');if(cfg)cfg.style.display='none';
     M._sendMsg();
@@ -2043,7 +2158,7 @@ var M={ // Mobile App Namespace
   },
   _clearHistory:function(){
     if(!confirm('确定清除所有会话历史吗？此操作不可撤销。'))return;
-    var agents=['grammar','exam','writing'];
+    var agents=['grammar','exam','writing','vocabulary'];
     agents.forEach(function(a){localStorage.removeItem('melix_'+a);M.stores[a]={conversations:[],activeConvId:null,config:{}}});
     localStorage.removeItem('melix_app');M.appState={student:'',difficulty:'',teaching:{}};
     M.navigate('home');
@@ -2097,7 +2212,13 @@ var M={ // Mobile App Namespace
   },
   _convTitle:function(msgs){
     if(!msgs||!msgs.length)return'新会话';
-    for(var i=0;i<msgs.length;i++){if(msgs[i].role==='user'){var t=msgs[i].content.replace(/【[^】]*】/g,'').trim();if(t.length>20)t=t.slice(0,20)+'…';return t||'新会话'}}
+    for(var i=0;i<msgs.length;i++){if(msgs[i].role==='user'){
+      var t=msgs[i].content.replace(/【[^】]*】/g,'').trim();
+      t=t.replace(/^你是[^。]{2,30}。/,'').replace(/^请/,'').trim();
+      t=t.split(/[\n。]/)[0].trim();
+      if(t.length>20)t=t.slice(0,20)+'…';
+      return t||'新会话';
+    }}
     return'新会话';
   }
 };
@@ -2153,6 +2274,9 @@ if(window.innerWidth<=767){
   var mp=document.getElementById('mainPanel');
   if(mp){mp.style.display='flex';mp.classList.remove('m-visible')}
 }
+
+// ═══════ PWA SERVICE WORKER ═══════
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){})}
 </script>
 </body>
 </html>

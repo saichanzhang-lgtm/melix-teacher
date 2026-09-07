@@ -18,6 +18,29 @@ const INVITES_DIR = path.join(DATA_DIR, 'invites');
 // Verification codes (in-memory, TTL 5min)
 const codeStore = {};
 
+// 手机号 → uid 索引缓存（避免每次登录遍历整个目录）
+let _phoneIndex = null;
+let _phoneIndexLoaded = false;
+
+function buildPhoneIndex() {
+  if (_phoneIndexLoaded) return _phoneIndex;
+  _phoneIndex = {};
+  try {
+    const files = fs.readdirSync(USERS_DIR);
+    for (const f of files) {
+      if (!f.endsWith('.json')) continue;
+      try {
+        const u = JSON.parse(fs.readFileSync(path.join(USERS_DIR, f), 'utf8'));
+        if (u.phone) _phoneIndex[u.phone] = u.uid;
+      } catch (_) {}
+    }
+  } catch (_) {}
+  _phoneIndexLoaded = true;
+  return _phoneIndex;
+}
+
+function invalidatePhoneIndex() { _phoneIndexLoaded = false; _phoneIndex = null; }
+
 function setCode(phone, code) {
   codeStore[phone] = { code, exp: Date.now() + 300000 };
 }
@@ -40,6 +63,8 @@ function loadUser(uid) {
 
 function saveUser(user) {
   storage.writeJSON(path.join(USERS_DIR, user.uid + '.json'), user);
+  // 更新索引缓存
+  if (_phoneIndexLoaded && _phoneIndex) _phoneIndex[user.phone] = user.uid;
 }
 
 function createUser(phone) {
@@ -112,16 +137,11 @@ async function handleLogin(req, res, data) {
     saveInvites(invites);
   }
 
-  // Find or create user
+  // Find or create user (使用索引缓存，O(1) 查找)
   let user = null;
-  try {
-    const files = fs.readdirSync(USERS_DIR);
-    for (const f of files) {
-      if (!f.endsWith('.json')) continue;
-      const u = JSON.parse(fs.readFileSync(path.join(USERS_DIR, f), 'utf8'));
-      if (u.phone === phone) { user = u; break; }
-    }
-  } catch (e) { /* ignore */ }
+  const index = buildPhoneIndex();
+  const existingUid = index[phone];
+  if (existingUid) user = loadUser(existingUid);
 
   if (!user) user = createUser(phone);
   user.lastLogin = new Date().toISOString();

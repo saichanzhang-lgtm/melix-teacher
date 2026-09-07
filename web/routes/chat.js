@@ -15,6 +15,9 @@ const CLAUDE_PATHS = [
 
 let BASE_SYSTEM_PROMPT = '';
 
+// ═══════ System Prompt 缓存（按 agent 缓存，避免每次正则提取）═══════
+const _fullPromptCache = {};
+
 function loadBasePrompt() {
   for (const p of CLAUDE_PATHS) {
     try {
@@ -36,6 +39,9 @@ loadBasePrompt();
  * @param {string} agentFilter - 可选，过滤到特定 Agent 的 prompt
  */
 function buildFullSystemPrompt(agentFilter) {
+  const cacheKey = agentFilter || '_default';
+  if (_fullPromptCache[cacheKey]) return _fullPromptCache[cacheKey];
+
   let prompt = BASE_SYSTEM_PROMPT;
 
   // 如果指定了 agent，提取相关部分的 prompt（约减少 40% token）
@@ -52,6 +58,7 @@ function buildFullSystemPrompt(agentFilter) {
   const kbText = kbLoader.buildSystemPrompt(BASE_DIR, agentFilter);
   prompt += kbText;
 
+  _fullPromptCache[cacheKey] = prompt;
   return prompt;
 }
 
@@ -60,7 +67,7 @@ function extractAgentSection(fullPrompt, agentName) {
   const agentMap = {
     teaching: '教材智能教学系统',
     grammar: '语法中心',
-    exam: '智能出卷系统',
+    exam: '智能组卷系统',
     grade: '智能阅卷系统',
     writing: '作文中心',
     vocabulary: '智能词汇检测中心',

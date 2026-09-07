@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// 知识库智能加载器
+// 知识库智能加载器（带内存缓存）
 // ═══════════════════════════════════════
 const fs = require('fs');
 const path = require('path');
@@ -18,9 +18,17 @@ const KB_FILES = {
 // 默认 token 预算（字符估算：1 token ≈ 2.5 中文字符）
 const DEFAULT_CHAR_BUDGET = 48000; // ~16K tokens for KB portion
 
-function loadKnowledgeBase(baseDir) {
-  const entries = [];
+// ═══════ 内存缓存（启动时加载一次，避免每次请求读盘）═══════
+let _cachedEntries = null;
+let _cachedBaseDir = null;
 
+function loadKnowledgeBase(baseDir) {
+  // 缓存命中：同一 baseDir 直接返回
+  if (_cachedEntries && _cachedBaseDir === baseDir) {
+    return _cachedEntries;
+  }
+
+  const entries = [];
   for (const [key, [relPath, priority]] of Object.entries(KB_FILES)) {
     const fullPath = path.join(baseDir, relPath);
     try {
@@ -28,19 +36,27 @@ function loadKnowledgeBase(baseDir) {
       entries.push({ key, priority, path: relPath, content, length: content.length });
       console.log(`  ✅ 已加载知识库: ${relPath} (${content.length} 字)`);
     } catch (e) {
-      // 静默跳过缺失的可选文件
       if (priority <= 4) {
         console.log(`  ⚠️ 核心知识库缺失: ${relPath}`);
       }
     }
   }
 
+  // 写入缓存
+  _cachedEntries = entries;
+  _cachedBaseDir = baseDir;
   return entries;
 }
 
+// 按 agent 缓存构建好的 prompt 文本
+const _promptCache = {};
+
 function buildSystemPrompt(baseDir, agentFilter) {
+  const cacheKey = (agentFilter || '_all') + '@' + baseDir;
+  if (_promptCache[cacheKey]) return _promptCache[cacheKey];
+
   const entries = loadKnowledgeBase(baseDir);
-  if (entries.length === 0) return '';
+  if (entries.length === 0) { _promptCache[cacheKey] = ''; return ''; }
 
   // 按优先级排序
   entries.sort((a, b) => a.priority - b.priority);
@@ -75,6 +91,7 @@ function buildSystemPrompt(baseDir, agentFilter) {
     remainingBudget -= useChars;
   });
 
+  _promptCache[cacheKey] = kbText;
   return kbText;
 }
 
