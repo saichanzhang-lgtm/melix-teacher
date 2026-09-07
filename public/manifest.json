@@ -1,0 +1,24 @@
+{
+  "name": "Melix Teacher — AI Teaching Workspace",
+  "short_name": "Melix Teacher",
+  "description": "北京市英语 AI 教学平台",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F8FA",
+  "theme_color": "#7A6CF5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

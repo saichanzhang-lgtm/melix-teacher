@@ -1,0 +1,14 @@
+{
+  "name": "melix-cloudflare",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Melix Teacher 北京K12英语AI家教 — Cloudflare Workers 部署",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4.129.0"
+  }
+}

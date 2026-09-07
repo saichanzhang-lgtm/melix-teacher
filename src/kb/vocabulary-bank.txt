@@ -1,0 +1,113 @@
+{
+  "description": "北京K12英语分级词汇库 — 按学段/年级/教材组织",
+  "version": "1.0",
+  "小学": {
+    "六年级": {
+      "北京版": {
+        "六上": [
+          {"word": "important", "phonetic": "/ɪmˈpɔːrtnt/", "chinese": "重要的", "unit": "U1"},
+          {"word": "practice", "phonetic": "/ˈpræktɪs/", "chinese": "练习", "unit": "U1"},
+          {"word": "prepare", "phonetic": "/prɪˈper/", "chinese": "准备", "unit": "U2"},
+          {"word": "examination", "phonetic": "/ɪɡˌzæmɪˈneɪʃn/", "chinese": "考试", "unit": "U2"},
+          {"word": "subject", "phonetic": "/ˈsʌbdʒɪkt/", "chinese": "科目；主题", "unit": "U2"},
+          {"word": "science", "phonetic": "/ˈsaɪəns/", "chinese": "科学", "unit": "U3"},
+          {"word": "geography", "phonetic": "/dʒiˈɑːɡrəfi/", "chinese": "地理", "unit": "U3"},
+          {"word": "history", "phonetic": "/ˈhɪstri/", "chinese": "历史", "unit": "U3"},
+          {"word": "environment", "phonetic": "/ɪnˈvaɪrənmənt/", "chinese": "环境", "unit": "U4"},
+          {"word": "pollution", "phonetic": "/pəˈluːʃn/", "chinese": "污染", "unit": "U4"},
+          {"word": "protect", "phonetic": "/prəˈtekt/", "chinese": "保护", "unit": "U4"},
+          {"word": "experience", "phonetic": "/ɪkˈspɪriəns/", "chinese": "经验；经历", "unit": "U5"},
+          {"word": "volunteer", "phonetic": "/ˌvɑːlənˈtɪr/", "chinese": "志愿者", "unit": "U5"},
+          {"word": "community", "phonetic": "/kəˈmjuːnəti/", "chinese": "社区", "unit": "U5"},
+          {"word": "celebrate", "phonetic": "/ˈselɪbreɪt/", "chinese": "庆祝", "unit": "U6"},
+          {"word": "festival", "phonetic": "/ˈfestɪvl/", "chinese": "节日", "unit": "U6"},
+          {"word": "traditional", "phonetic": "/trəˈdɪʃənl/", "chinese": "传统的", "unit": "U6"}
+        ],
+        "六下": [
+          {"word": "graduate", "phonetic": "/ˈɡrædʒuət/", "chinese": "毕业", "unit": "U1"},
+          {"word": "memory", "phonetic": "/ˈmeməri/", "chinese": "记忆", "unit": "U1"},
+          {"word": "friendship", "phonetic": "/ˈfrendʃɪp/", "chinese": "友谊", "unit": "U1"},
+          {"word": "compare", "phonetic": "/kəmˈper/", "chinese": "比较", "unit": "U2"},
+          {"word": "taller", "phonetic": "/ˈtɔːlər/", "chinese": "更高的", "unit": "U2"},
+          {"word": "stronger", "phonetic": "/ˈstrɔːŋɡər/", "chinese": "更强壮的", "unit": "U2"},
+          {"word": "planet", "phonetic": "/ˈplænɪt/", "chinese": "行星", "unit": "U3"},
+          {"word": "universe", "phonetic": "/ˈjuːnɪvɜːrs/", "chinese": "宇宙", "unit": "U3"},
+          {"word": "astronaut", "phonetic": "/ˈæstrənɔːt/", "chinese": "宇航员", "unit": "U3"},
+          {"word": "technology", "phonetic": "/tekˈnɑːlədʒi/", "chinese": "技术", "unit": "U4"},
+          {"word": "invention", "phonetic": "/ɪnˈvenʃn/", "chinese": "发明", "unit": "U4"},
+          {"word": "communicate", "phonetic": "/kəˈmjuːnɪkeɪt/", "chinese": "交流", "unit": "U4"},
+          {"word": "review", "phonetic": "/rɪˈvjuː/", "chinese": "复习", "unit": "U5"},
+          {"word": "improve", "phonetic": "/ɪmˈpruːv/", "chinese": "提高", "unit": "U5"},
+          {"word": "confident", "phonetic": "/ˈkɑːnfɪdənt/", "chinese": "自信的", "unit": "U5"},
+          {"word": "wonderful", "phonetic": "/ˈwʌndərfl/", "chinese": "精彩的", "unit": "U6"},
+          {"word": "remember", "phonetic": "/rɪˈmembər/", "chinese": "记住", "unit": "U6"},
+          {"word": "forever", "phonetic": "/fərˈevər/", "chinese": "永远", "unit": "U6"}
+        ]
+      }
+    }
+  },
+  "初中": {
+    "初一": {
+      "人教版": {
+        "七上": [
+          {"word": "guitar", "phonetic": "/ɡɪˈtɑːr/", "chinese": "吉他", "unit": "U1"},
+          {"word": "swim", "phonetic": "/swɪm/", "chinese": "游泳", "unit": "U1"},
+          {"word": "usually", "phonetic": "/ˈjuːʒuəli/", "chinese": "通常", "unit": "U2"},
+          {"word": "exercise", "phonetic": "/ˈeksərsaɪz/", "chinese": "锻炼", "unit": "U2"},
+          {"word": "kilometer", "phonetic": "/kɪˈlɑːmɪtər/", "chinese": "公里", "unit": "U3"},
+          {"word": "transportation", "phonetic": "/ˌtrænspɔːrˈteɪʃn/", "chinese": "交通", "unit": "U3"},
+          {"word": "follow", "phonetic": "/ˈfɑːloʊ/", "chinese": "遵守；跟随", "unit": "U4"},
+          {"word": "strict", "phonetic": "/strɪkt/", "chinese": "严格的", "unit": "U4"},
+          {"word": "animal", "phonetic": "/ˈænɪml/", "chinese": "动物", "unit": "U5"},
+          {"word": "dangerous", "phonetic": "/ˈdeɪndʒərəs/", "chinese": "危险的", "unit": "U5"},
+          {"word": "weather", "phonetic": "/ˈweðər/", "chinese": "天气", "unit": "U7"},
+          {"word": "vacation", "phonetic": "/veɪˈkeɪʃn/", "chinese": "假期", "unit": "U11"},
+          {"word": "delicious", "phonetic": "/dɪˈlɪʃəs/", "chinese": "美味的", "unit": "U10"},
+          {"word": "describe", "phonetic": "/dɪˈskraɪb/", "chinese": "描述", "unit": "U9"},
+          {"word": "straight", "phonetic": "/streɪt/", "chinese": "直的；直接", "unit": "U8"}
+        ],
+        "七下": [
+          {"word": "yesterday", "phonetic": "/ˈjestərdeɪ/", "chinese": "昨天", "unit": "U11"},
+          {"word": "museum", "phonetic": "/mjuˈziːəm/", "chinese": "博物馆", "unit": "U9"},
+          {"word": "experience", "phonetic": "/ɪkˈspɪriəns/", "chinese": "经历", "unit": "U10"},
+          {"word": "decide", "phonetic": "/dɪˈsaɪd/", "chinese": "决定", "unit": "U1"},
+          {"word": "volunteer", "phonetic": "/ˌvɑːlənˈtɪr/", "chinese": "志愿者", "unit": "U2"},
+          {"word": "independent", "phonetic": "/ˌɪndɪˈpendənt/", "chinese": "独立的", "unit": "U3"},
+          {"word": "communicate", "phonetic": "/kəˈmjuːnɪkeɪt/", "chinese": "沟通", "unit": "U4"},
+          {"word": "suddenly", "phonetic": "/ˈsʌdənli/", "chinese": "突然地", "unit": "U5"},
+          {"word": "unless", "phonetic": "/ənˈles/", "chinese": "除非", "unit": "U6"},
+          {"word": "population", "phonetic": "/ˌpɑːpjuˈleɪʃn/", "chinese": "人口", "unit": "U7"},
+          {"word": "treasure", "phonetic": "/ˈtreʒər/", "chinese": "宝藏；珍视", "unit": "U8"},
+          {"word": "already", "phonetic": "/ɔːlˈredi/", "chinese": "已经", "unit": "U8"},
+          {"word": "ever", "phonetic": "/ˈevər/", "chinese": "曾经", "unit": "U9"},
+          {"word": "since", "phonetic": "/sɪns/", "chinese": "自从", "unit": "U10"},
+          {"word": "during", "phonetic": "/ˈdʊrɪŋ/", "chinese": "在...期间", "unit": "U12"}
+        ]
+      }
+    }
+  },
+  "小升初高频词": [
+    {"word": "because", "phonetic": "/bɪˈkɔːz/", "chinese": "因为", "exam_freq": "★★★★★"},
+    {"word": "different", "phonetic": "/ˈdɪfrənt/", "chinese": "不同的", "exam_freq": "★★★★☆"},
+    {"word": "favorite", "phonetic": "/ˈfeɪvərɪt/", "chinese": "最喜欢的", "exam_freq": "★★★★☆"},
+    {"word": "interested", "phonetic": "/ˈɪntrəstɪd/", "chinese": "感兴趣的", "exam_freq": "★★★★☆"},
+    {"word": "remember", "phonetic": "/rɪˈmembər/", "chinese": "记住", "exam_freq": "★★★★★"},
+    {"word": "through", "phonetic": "/θruː/", "chinese": "通过；穿过", "exam_freq": "★★★☆☆"},
+    {"word": "another", "phonetic": "/əˈnʌðər/", "chinese": "另一个", "exam_freq": "★★★★☆"},
+    {"word": "together", "phonetic": "/təˈɡeðər/", "chinese": "一起", "exam_freq": "★★★★☆"},
+    {"word": "without", "phonetic": "/wɪˈðaʊt/", "chinese": "没有", "exam_freq": "★★★☆☆"},
+    {"word": "beautiful", "phonetic": "/ˈbjuːtɪfl/", "chinese": "美丽的", "exam_freq": "★★★★☆"}
+  ],
+  "中考高频词": [
+    {"word": "environment", "phonetic": "/ɪnˈvaɪrənmənt/", "chinese": "环境", "exam_freq": "★★★★★"},
+    {"word": "encourage", "phonetic": "/ɪnˈkɜːrɪdʒ/", "chinese": "鼓励", "exam_freq": "★★★★☆"},
+    {"word": "influence", "phonetic": "/ˈɪnfluəns/", "chinese": "影响", "exam_freq": "★★★★☆"},
+    {"word": "especially", "phonetic": "/ɪˈspeʃəli/", "chinese": "尤其", "exam_freq": "★★★★☆"},
+    {"word": "necessary", "phonetic": "/ˈnesəseri/", "chinese": "必要的", "exam_freq": "★★★☆☆"},
+    {"word": "introduction", "phonetic": "/ˌɪntrəˈdʌkʃn/", "chinese": "介绍", "exam_freq": "★★★☆☆"},
+    {"word": "success", "phonetic": "/səkˈses/", "chinese": "成功", "exam_freq": "★★★★★"},
+    {"word": "knowledge", "phonetic": "/ˈnɑːlɪdʒ/", "chinese": "知识", "exam_freq": "★★★★☆"},
+    {"word": "opportunity", "phonetic": "/ˌɑːpərˈtuːnəti/", "chinese": "机会", "exam_freq": "★★★☆☆"},
+    {"word": "immediately", "phonetic": "/ɪˈmiːdiətli/", "chinese": "立即", "exam_freq": "★★★★☆"}
+  ]
+}

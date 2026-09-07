@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Melix Teacher</title>
+<style>
+:root{--pri:#7A6CF5;--pri-light:#F0ECFD;--bg:#F9F8F6;--surface:#FFFFFF;--text:#1E1B18;--text2:#8E8880;--border:#E8E8E8;--radius:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);padding:24px}
+h1{font-size:1.4rem;margin-bottom:20px}
+h2{font-size:1.1rem;margin:24px 0 12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat-box{flex:1;min-width:140px;background:var(--pri-light);border-radius:var(--radius);padding:16px;text-align:center}
+.stat-num{font-size:2rem;font-weight:700;color:var(--pri)}
+.stat-label{font-size:.8rem;color:var(--text2)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{border:1px solid var(--border);padding:8px 12px;text-align:left}
+th{background:var(--pri-light);color:var(--pri);font-weight:600}
+.btn{padding:8px 16px;border:none;border-radius:8px;background:var(--pri);color:#fff;font-size:.85rem;cursor:pointer;font-family:inherit}
+.btn:hover{filter:brightness(1.1)}
+.btn-sm{padding:4px 10px;font-size:.78rem}
+.error{background:#FFF0F0;color:#C44;padding:12px;border-radius:var(--radius);display:none}
+</style>
+</head>
+<body>
+<h1>🛠 后台管理系统</h1>
+
+<div id="loading">加载中...</div>
+
+<div id="main" style="display:none">
+  <div class="stats" id="statsBoxes"></div>
+
+  <h2>📋 邀请码管理</h2>
+  <div class="card">
+    <div style="margin-bottom:12px">
+      <button class="btn" onclick="genInvites(5)">生成 5 个邀请码</button>
+      <button class="btn" onclick="genInvites(10)" style="margin-left:8px">生成 10 个</button>
+    </div>
+    <table id="inviteTable"><thead><tr><th>邀请码</th><th>最大使用</th><th>已使用</th><th>创建时间</th></tr></thead><tbody></tbody></table>
+  </div>
+
+  <h2>📊 系统状态</h2>
+  <div class="card" id="sysStatus"></div>
+</div>
+
+<script>
+var token=localStorage.getItem('tutor_token');
+if(!token){document.body.innerHTML='<h1>❌ 请先登录</h1>';throw new Error('auth')}
+function api(url,opt){
+  return fetch(url,Object.assign({headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}},opt||{}))
+    .then(function(r){if(!r.ok)return r.json().then(function(d){throw new Error(d.error||'Error '+r.status)});return r.json()});
+}
+function load(){
+  api('/api/admin/stats').then(function(d){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('main').style.display='block';
+    document.getElementById('statsBoxes').innerHTML='<div class="stat-box"><div class="stat-num">'+d.userCount+'</div><div class="stat-label">用户数</div></div><div class="stat-box"><div class="stat-num">'+d.model+'</div><div class="stat-label">AI模型</div></div><div class="stat-box"><div class="stat-num">'+(d.kbLoaded?'✅':'❌')+'</div><div class="stat-label">知识库</div></div><div class="stat-box"><div class="stat-num">'+d.env+'</div><div class="stat-label">环境</div></div>';
+    document.getElementById('sysStatus').innerHTML='<p>模型：'+d.model+'</p><p>环境：'+d.env+'</p><p>邀请模式：'+(d.inviteMode?'开启':'关闭')+'</p><p>时间：'+d.timestamp+'</p>';
+    return api('/api/admin/invites');
+  }).then(function(invites){
+    var tbody=document.querySelector('#inviteTable tbody');
+    if(!invites.length){tbody.innerHTML='<tr><td colspan="4">暂无邀请码</td></tr>';return}
+    tbody.innerHTML=invites.reverse().map(function(i){return'<tr><td><code>'+i.code+'</code></td><td>'+i.maxUses+'</td><td>'+i.used+'</td><td>'+i.createdAt+'</td></tr>'}).join('');
+  }).catch(function(e){document.getElementById('loading').textContent='❌ '+e.message});
+}
+function genInvites(n){
+  api('/api/admin/invites',{method:'POST',body:JSON.stringify({count:n})})
+    .then(function(){load()}).catch(function(e){alert(e.message)});
+}
+load();
+</script>
+</body>
+</html>

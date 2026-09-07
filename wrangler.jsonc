@@ -1,0 +1,57 @@
+// Melix Teacher — Cloudflare Workers 部署配置
+// 免费_plan：Workers 10万请求/天 + 静态资源不限量 + KV 10万读/1千写 每天
+{
+  "name": "melix-teacher",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-09-01",
+  "account_id": "1b43c5c09a1f08f9cfb0e1e9a059edf8",
+
+  // 静态资源：命中直接由边缘节点返回（免费、不限量、不占 Worker 请求数）
+  // 未命中（/api/*）才进 Worker
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+
+  // 环境变量（非敏感）
+  "vars": {
+    "NODE_ENV": "production",
+    "ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic",
+    "ANTHROPIC_MODEL": "deepseek-v4-pro",
+    "ANTHROPIC_FALLBACK_MODEL": "",
+    // 思考控制：disabled=关闭深度思考（实测 12s→2s，用户要求 ≤15s）；enabled=开启（配 ANTHROPIC_THINKING_BUDGET）；auto=模型自行决定
+    "ANTHROPIC_THINKING": "disabled",
+
+    // 🐛 备用 AI 供应商（Anthropic 兼容端点）：主力 DeepSeek 402 余额不足/403 时自动切换，零代码改动
+    //   key 用 secret：npx wrangler secret put ANTHROPIC_BACKUP_AUTH_TOKEN
+    "ANTHROPIC_BACKUP_BASE_URL": "https://open.bigmodel.cn/api/anthropic",
+    "ANTHROPIC_BACKUP_MODEL": "glm-5.3-flash",
+    "ANTHROPIC_BACKUP_THINKING": "disabled",
+
+    "INVITE_MODE": "false"
+  },
+
+  // 敏感信息用 secret（见 DEPLOY.md）：
+  //   npx wrangler secret put ANTHROPIC_AUTH_TOKEN   ← DeepSeek API Key
+  //   npx wrangler secret put ANTHROPIC_BACKUP_AUTH_TOKEN   ← 备用供应商 API Key
+  //   npx wrangler secret put JWT_SECRET
+
+  "kv_namespaces": [
+    { "binding": "KV", "id": "262947d3c70d4392be317f9a78e9787b" }
+  ],
+
+  // 自定义域名（melix.fun 已接入本账户 CF DNS，自动签发 HTTPS 证书）
+  "routes": [
+    { "pattern": "melix.fun", "custom_domain": true }
+  ],
+  "workers_dev": true,
+
+  // 知识库 .md / .txt 以文本模块打进 Worker（部署时内置，无运行时读盘）
+  "rules": [
+    { "type": "Text", "globs": ["**/*.md", "**/*.txt"], "fallthrough": true }
+  ],
+
+  "observability": {
+    "enabled": true
+  }
+}

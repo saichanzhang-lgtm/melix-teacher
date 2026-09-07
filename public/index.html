@@ -1,0 +1,2621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#7A6CF5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Melix Teacher">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/logo.png">
+<link rel="icon" type="image/png" href="/logo.png">
+<title>Melix Teacher — AI Teaching Workspace</title>
+<style>
+:root{--pri:#7A6CF5;--pri-light:#F0ECFD;--pri-dark:#5A4BD4;--pri-hover:#F7F4FF;--pri-active-bg:#EDE9FD;--pri-active-border:#CFC5F8;--pri-active-text:#5A4BD4;--accent:#47C4B8;--accent-light:#EDFAF8;--bg:#F8F8FA;--surface:#FFFFFF;--text:#1F2430;--text2:#8B8FA0;--border:#EAEBF0;--shadow:0 1px 2px rgba(0,0,0,.04);--radius:12px;--radius-sm:8px;--input-bg:#F5F5F7;--success:#47C4B8;--nav-w:300px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:17px}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:var(--nav-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;height:100vh;overflow:hidden}
+.sb-header{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-logo-img{flex-shrink:0;border-radius:6px}
+.sb-title{font-size:0.82rem;font-weight:700;line-height:1.2}
+.sb-sub{font-size:0.65rem;color:var(--text2)}
+.sb-scroll{flex:1;overflow-y:auto;overflow-x:hidden}
+.sb-sec{padding:8px 0}
+.sb-sec-hd{display:flex;align-items:center;justify-content:space-between;padding:6px 16px 4px}
+.sb-sec-lbl{font-size:0.62rem;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);font-weight:600}
+.sb-sec-btn{font-size:0.7rem;background:none;border:none;color:var(--pri);cursor:pointer;padding:2px 6px;border-radius:4px}
+.sb-sec-btn:hover{background:var(--pri-hover)}
+
+/* Student card */
+.sb-card{margin:4px 10px;padding:10px 12px;background:var(--input-bg);border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.sb-card:hover{border-color:var(--pri-active-border);background:var(--pri-hover)}
+.sb-card-top{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.sb-card-av{width:30px;height:30px;border-radius:50%;background:var(--pri-light);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.sb-card-name{font-size:.82rem;font-weight:600}
+.sb-card-meta{font-size:.65rem;color:var(--text2);line-height:1.4}
+.sb-card-prog{display:flex;align-items:center;gap:6px;margin-top:4px}
+.sb-prog-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.sb-prog-fill{height:100%;background:var(--pri);border-radius:2px}
+.sb-prog-lbl{font-size:.6rem;color:var(--text2);white-space:nowrap}
+.sb-empty{padding:8px 14px;font-size:.72rem;color:var(--text2);text-align:center}
+.sb-search{width:calc(100% - 24px);margin:4px 12px 6px;padding:6px 10px;font-size:.72rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;font-family:inherit;box-sizing:border-box}
+.sb-search:focus{border-color:var(--pri)}
+
+/* Agent items */
+.sb-agent{display:flex;align-items:center;gap:10px;width:100%;padding:9px 16px;border:none;border-left:3px solid transparent;background:transparent;cursor:pointer;font-size:.8rem;color:var(--text);transition:all .15s;font-family:inherit;text-align:left}
+.sb-agent:hover{background:var(--pri-hover);color:var(--pri-dark)}
+.sb-agent.active{background:var(--pri-active-bg);border-left-color:var(--pri);color:var(--pri-active-text);font-weight:600}
+.sb-agent-ic{font-size:1.1rem;width:24px;text-align:center;flex-shrink:0}
+.sb-agent-lb{flex:1;line-height:1.3}
+.sb-agent-bg{font-size:.6rem;padding:2px 6px;border-radius:8px;background:var(--pri-light);color:var(--pri-dark);white-space:nowrap}
+
+/* Conv items */
+.sb-conv{display:flex;align-items:center;gap:8px;padding:6px 16px 6px 20px;cursor:pointer;font-size:.76rem;color:var(--text);transition:all .12s;border:none;background:none;width:100%;text-align:left;line-height:1.3;font-family:inherit}
+.sb-conv:hover{background:var(--pri-hover)}
+.sb-conv.active{background:var(--pri-active-bg);color:var(--pri-active-text)}
+.sb-conv-ic{font-size:.7rem;flex-shrink:0;opacity:.6}
+.sb-conv-tl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-conv-tm{font-size:.6rem;color:var(--text2);flex-shrink:0}
+.sb-conv-act{display:none;gap:2px}
+.sb-conv:hover .sb-conv-act{display:flex}
+.sb-conv-act-btn{font-size:.65rem;background:none;border:none;cursor:pointer;padding:1px 4px;border-radius:3px;color:var(--text2)}
+.sb-conv-act-btn:hover{background:var(--border)}
+
+/* Settings */
+.sb-set{display:flex;align-items:center;gap:8px;width:100%;padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:.72rem;color:var(--text2);transition:all .12s;font-family:inherit;text-align:left}
+.sb-set:hover{background:var(--pri-hover);color:var(--text)}
+.sb-set-ic{font-size:.85rem;width:20px;text-align:center;flex-shrink:0}
+
+/* Resizer */
+.sb-resizer{width:4px;cursor:col-resize;background:transparent;flex-shrink:0;position:relative;z-index:10;transition:background .15s}
+.sb-resizer:hover,.sb-resizer.dragging{background:var(--pri)}
+.sb-resizer::after{content:'';position:absolute;top:0;bottom:0;left:-3px;right:-3px}
+
+/* Main AI panel */
+.main-panel{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg);height:100vh}
+.mp-header{padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.mp-agent-badge{font-size:.85rem;font-weight:600;padding:4px 12px;border-radius:20px;background:var(--pri-active-bg);color:var(--pri-active-text);white-space:nowrap}
+.mp-info{font-size:.75rem;color:var(--text2);white-space:nowrap}
+.mp-actions{margin-left:auto;display:flex;gap:6px}
+.mp-btn{padding:5px 12px;border:1px solid var(--border);border-radius:16px;background:var(--surface);cursor:pointer;font-size:.78rem;font-family:inherit;transition:all .15s;white-space:nowrap;color:var(--text)}
+.mp-btn:hover{background:#EDF5EE;border-color:var(--success);color:var(--success)}
+
+/* Config */
+.mp-config{background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow:hidden;transition:max-height .3s}
+.mp-config-inner{padding:12px 16px}
+.cfg-title{font-size:.94rem;font-weight:700;margin-bottom:8px}
+.cfg-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.cfg-sel{padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.85rem;background:var(--surface);font-family:inherit;cursor:pointer;color:var(--text)}
+.cfg-btn{padding:8px 18px;border:none;border-radius:var(--radius-sm);background:var(--pri);color:#fff;font-size:.85rem;cursor:pointer;font-family:inherit;transition:all .15s}
+.cfg-btn:hover{filter:brightness(1.08)}
+.gram-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:5px}
+.gram-cat{font-size:.72rem;font-weight:700;color:var(--text2);grid-column:1/-1;margin-top:6px}
+.gram-item{padding:7px 4px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.8rem;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface);user-select:none}
+.gram-item:hover{background:var(--pri-hover);border-color:var(--pri-active-border)}
+.gram-item.sel{background:var(--pri-active-bg);color:var(--pri-active-text);border-color:var(--pri-active-border)}
+
+/* Messages */
+.mp-messages{flex:1 1 0;overflow-y:auto;overflow-x:hidden;padding:16px 24px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.mp-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--text2);padding:30px}
+.mp-empty-ic{font-size:2.5rem;margin-bottom:10px}
+.mp-empty h3{font-size:1.1rem;color:var(--text);margin-bottom:6px}
+.mp-empty p{font-size:.88rem}
+
+/* Msg bubbles */
+.msg{display:flex;gap:8px;max-width:90%}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+.msg.asst{align-self:flex-start}
+.msg-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.msg.user .msg-av{background:var(--pri-light)}
+.msg.asst .msg-av{background:var(--accent-light)}
+.msg-content{background:var(--surface);padding:10px 16px;border-radius:var(--radius);box-shadow:var(--shadow);line-height:1.7;font-size:.88rem;word-break:break-word;border:1px solid var(--border)}
+.msg.user .msg-content{background:var(--pri-dark);color:#fff;border-color:var(--pri-dark)}
+.msg-content h2{font-size:1rem;margin:6px 0 3px}
+.msg-content h3{font-size:.9rem;margin:5px 0 3px}
+.msg-content p{margin-bottom:4px}.msg-content p:last-child{margin-bottom:0}
+.msg-content ul,.msg-content ol{padding-left:18px;margin:3px 0}
+.msg-content table,.md-table{border-collapse:collapse;width:100%;margin:10px 0;font-size:.82rem;display:table;overflow-x:auto}
+.msg-content th,.md-table th{background:var(--pri-light);color:var(--pri-dark);font-weight:700;padding:8px 10px;text-align:left;border:1px solid var(--pri-active-border);white-space:nowrap}
+.msg-content td,.md-table td{padding:7px 10px;text-align:left;border:1px solid var(--border);vertical-align:middle;word-break:keep-all;overflow-wrap:break-word}
+.msg-content tbody tr:nth-child(even),.md-table tbody tr:nth-child(even){background:var(--input-bg)}
+.msg-content tbody tr:hover,.md-table tbody tr:hover{background:var(--pri-hover)}
+.msg-content code{background:var(--input-bg);padding:1px 4px;border-radius:3px;font-size:.8rem}
+.msg-content pre{background:var(--pri-hover);padding:10px;border-radius:var(--radius-sm);overflow-x:auto;margin:4px 0;font-size:.8rem;line-height:1.4}
+.msg-content strong{color:var(--pri-dark)}
+.msg.user .msg-content strong{color:#F5EDE9}
+.msg-content blockquote{border-left:2px solid var(--pri);padding-left:8px;margin:4px 0;color:var(--text2)}
+
+/* Input */
+.mp-input-wrap{display:flex;gap:10px;padding:10px 16px;border-top:1px solid var(--border);align-items:flex-end;flex-shrink:0;background:var(--surface)}
+.mp-input-wrap textarea{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:18px;font-size:.88rem;resize:none;outline:none;font-family:inherit;background:var(--input-bg);max-height:100px;color:var(--text)}
+.mp-input-wrap textarea:focus{border-color:var(--pri)}
+.mp-send{width:38px;height:38px;border-radius:50%;border:none;background:var(--pri);color:#fff;font-size:1.2rem;cursor:pointer;flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.mp-send:hover{filter:brightness(1.1)}
+.mp-send:disabled{opacity:.4;cursor:not-allowed}
+
+/* Debug bar */
+.debug-bar{display:none}
+.debug-dot{width:7px;height:7px;border-radius:50%;background:#FFC107;flex-shrink:0}
+.debug-dot.ok{background:#4CAF50}.debug-dot.err{background:#F44336}
+
+/* Loading dots */
+.load-dots{display:flex;gap:3px;padding:3px 0}
+.load-dots span{width:5px;height:5px;border-radius:50%;background:var(--text2);animation:ld-bounce 1.4s infinite ease-in-out both}
+.load-dots span:nth-child(1){animation-delay:-.32s}.load-dots span:nth-child(2){animation-delay:-.16s}
+@keyframes ld-bounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
+
+@media(max-width:768px){:root{--nav-w:100vw}.sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;transform:translateX(-100%);transition:transform .25s}.sidebar.open{transform:translateX(0)}.sb-resizer{display:none}}
+
+/* ═══════════════════════════════════════
+   MOBILE APP V5 — Morandi Purple Design System
+   Mobile-First Architecture with Hash Router
+   ═══════════════════════════════════════ */
+.mobile-only{display:none}
+
+@media(max-width:767px){
+  /* ═══════ DESIGN TOKENS ═══════ */
+  :root{--m-pri:#8B7AC8;--m-pri-light:#EDE8F6;--m-pri-dark:#6B5AA8;--m-bg:#F8F7F4;--m-card:#FFFFFF;--m-text:#2F3437;--m-sub:#8E8B90;--m-border:#E8E7E4;--m-radius:16px;--m-radius-sm:12px;--m-shadow:0 1px 3px rgba(0,0,0,.04);--m-nav-h:72px}
+
+  html{font-size:16px;background:var(--m-bg);height:100%}
+  body{display:flex;flex-direction:column;min-height:100dvh;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;background:var(--m-bg);margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+
+  /* Hide desktop layout */
+  .app,.sidebar,.sb-resizer,.debug-bar,.mp-header,.mp-actions{display:none!important}
+  .mobile-only{display:flex}
+
+  /* ═══════ MOBILE APP SHELL ═══════ */
+  #mobile-app{display:flex;flex-direction:column;min-height:100dvh;padding-bottom:var(--m-nav-h)}
+
+  /* ═══════ BOTTOM NAVIGATION ═══════ */
+  .m-bnav{position:fixed;bottom:0;left:0;right:0;height:var(--m-nav-h);background:rgba(255,255,255,.92);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-top:0.5px solid var(--m-border);display:flex;z-index:300;padding:0 4px;padding-bottom:max(4px,env(safe-area-inset-bottom))}
+  .m-bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;font-size:0.6rem;color:var(--m-sub);cursor:pointer;font-family:inherit;font-weight:500;transition:color .15s}
+  .m-bnav-item.active{color:var(--m-pri);font-weight:700}
+  .m-bnav-item-ic{font-size:1.2rem;transition:transform .15s}
+  .m-bnav-item.active .m-bnav-item-ic{transform:translateY(-1px)}
+
+  /* ═══════ PAGE CONTAINER ═══════ */
+  .m-page{display:none;flex:1;flex-direction:column;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--m-bg)}
+  .m-page.active{display:flex}
+
+  /* ═══════ HOME PAGE ═══════ */
+  .m-home-hero{background:linear-gradient(135deg,var(--m-pri) 0%,#9B8FD4 40%,#BFB8E8 100%);padding:28px 20px 32px;color:#fff;position:relative;overflow:hidden;border-radius:0 0 24px 24px}
+  .m-home-hero::after{content:'';position:absolute;top:-40px;right:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06)}
+  .m-home-greeting{font-size:1.3rem;font-weight:700;margin-bottom:4px;position:relative;z-index:1;letter-spacing:-.3px}
+  .m-home-sub{font-size:0.78rem;opacity:.8;position:relative;z-index:1}
+  .m-home-section{padding:0 16px 16px}
+  .m-home-sectitle{font-size:0.7rem;font-weight:700;color:var(--m-sub);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;padding-top:8px}
+
+  /* Task Grid */
+  .m-task-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .m-task-item{background:var(--m-card);border-radius:var(--m-radius);padding:14px 6px;text-align:center;box-shadow:var(--m-shadow);cursor:pointer;transition:transform .15s}
+  .m-task-item:active{transform:scale(.96);background:var(--m-pri-light)}
+  .m-task-ic{font-size:1.3rem;margin-bottom:2px}
+  .m-task-num{font-size:1.2rem;font-weight:800;color:var(--m-pri);margin-bottom:1px}
+  .m-task-lb{font-size:.62rem;font-weight:600;color:var(--m-text)}
+
+  /* Student Card */
+  .m-student-card{background:var(--m-card);border-radius:var(--m-radius);padding:16px;box-shadow:var(--m-shadow);display:flex;align-items:center;gap:12px;cursor:pointer;transition:transform .15s}
+  .m-student-card:active{transform:scale(.98);background:var(--m-pri-light)}
+  .m-student-av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--m-pri),var(--m-pri-dark));display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;color:#fff}
+  .m-student-info{flex:1;min-width:0}
+  .m-student-name{font-weight:700;font-size:.9rem;color:var(--m-text)}
+  .m-student-meta{font-size:.68rem;color:var(--m-sub);margin-top:1px}
+  .m-student-prog{display:flex;align-items:center;gap:8px;margin-top:4px}
+  .m-student-bar{flex:1;height:5px;background:var(--m-border);border-radius:3px;overflow:hidden;max-width:100px}
+  .m-student-fill{height:100%;background:var(--m-pri);border-radius:3px}
+  .m-student-pct{font-size:.7rem;color:var(--m-pri);font-weight:700}
+  .m-student-btn{padding:6px 14px;border-radius:14px;background:var(--m-pri-light);color:var(--m-pri);font-size:.68rem;font-weight:600;border:none;cursor:pointer;white-space:nowrap;font-family:inherit}
+
+  /* Workbench Grid */
+  .m-wb-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .m-wb-card{background:var(--m-card);border-radius:var(--m-radius);padding:16px;box-shadow:var(--m-shadow);cursor:pointer;transition:transform .15s}
+  .m-wb-card:active{transform:scale(.97);background:var(--m-pri-light)}
+  .m-wb-ic{font-size:1.4rem;margin-bottom:6px}
+  .m-wb-title{font-size:.82rem;font-weight:700;color:var(--m-text)}
+  .m-wb-sub{font-size:.68rem;color:var(--m-sub);margin-top:2px}
+
+  /* Recent Work */
+  .m-recent-list{display:flex;flex-direction:column;gap:6px}
+  .m-recent-item{background:var(--m-card);border-radius:var(--m-radius-sm);padding:12px 16px;box-shadow:var(--m-shadow);display:flex;align-items:center;gap:10px;cursor:pointer}
+  .m-recent-item:active{background:var(--m-pri-light)}
+  .m-recent-ic{font-size:1rem;opacity:.5}
+  .m-recent-tl{flex:1;font-size:.8rem;font-weight:600;color:var(--m-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .m-recent-tm{font-size:.65rem;color:var(--m-sub);flex-shrink:0}
+
+  /* CTA Card */
+  .m-cta-card{background:linear-gradient(135deg,var(--m-pri),#9B8FD4);border-radius:var(--m-radius);padding:18px 16px;margin:0 16px 16px;color:#fff;cursor:pointer;transition:transform .15s;position:relative;overflow:hidden}
+  .m-cta-card::after{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.08)}
+  .m-cta-card:active{transform:scale(.98)}
+  .m-cta-title{font-size:.88rem;font-weight:700;position:relative;z-index:1}
+  .m-cta-sub{font-size:.72rem;opacity:.85;margin-top:3px;position:relative;z-index:1}
+
+  /* ═══════ WORKSPACE PAGE — Card Layout ═══════ */
+  .m-ws-header{padding:16px 16px 8px;font-size:1rem;font-weight:700;color:var(--m-text)}
+  .m-ws-student{padding:0 16px 12px;font-size:.76rem;color:var(--m-sub)}
+  .m-agent-cards{display:flex;flex-direction:column;gap:10px;padding:0 16px}
+  .m-agent-card{background:var(--m-card);border-radius:var(--m-radius);padding:18px 16px;box-shadow:var(--m-shadow);display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .15s;min-height:80px}
+  .m-agent-card:active{transform:scale(.98);background:var(--m-pri-light)}
+  .m-agent-card-ic{font-size:1.8rem;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--m-pri-light);border-radius:14px;flex-shrink:0}
+  .m-agent-card-info{flex:1}
+  .m-agent-card-name{font-size:.88rem;font-weight:700;color:var(--m-text)}
+  .m-agent-card-desc{font-size:.7rem;color:var(--m-sub);margin-top:2px}
+  .m-agent-card-arrow{color:var(--m-sub);font-size:1rem}
+
+  /* ═══════ AGENT PAGE — ChatGPT Style ═══════ */
+  .m-agent-header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--m-card);border-bottom:0.5px solid var(--m-border);flex-shrink:0;position:sticky;top:0;z-index:10}
+  .m-agent-back{font-size:1.2rem;background:none;border:none;cursor:pointer;color:var(--m-text);padding:4px 8px 4px 0;font-family:inherit}
+  .m-agent-title{font-size:.9rem;font-weight:700;color:var(--m-text)}
+  .m-agent-topic{font-size:.7rem;color:var(--m-sub);margin-left:auto;padding:4px 10px;background:var(--m-pri-light);border-radius:10px;color:var(--m-pri-dark);max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .m-agent-config{background:var(--m-bg);padding:4px 16px 8px;border-bottom:0.5px solid var(--m-border);flex-shrink:0;max-height:40vh;overflow-y:auto}
+  .m-agent-config .cfg-sel{width:100%;margin-bottom:6px;padding:10px 14px;font-size:16px;border-radius:var(--m-radius-sm);border:0.5px solid var(--m-border);background:var(--m-card);font-family:inherit;color:var(--m-text)}
+  .m-agent-config .cfg-btn{width:100%;padding:12px;border:none;border-radius:var(--m-radius-sm);background:var(--m-pri);color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit}
+
+  /* Grammar chips in agent config */
+  .m-gram-chips{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0}
+  .m-gram-cat{font-size:.7rem;font-weight:700;color:var(--m-sub);width:100%;margin-top:4px}
+  .m-gram-chip{padding:7px 14px;border-radius:18px;font-size:.75rem;border:0.5px solid var(--m-border);background:var(--m-card);color:var(--m-text);cursor:pointer;transition:all .15s;white-space:nowrap}
+  .m-gram-chip.sel{background:var(--m-pri);color:#fff;border-color:var(--m-pri)}
+  .m-vocab-stats{font-size:.75rem;color:var(--m-sub);padding:6px 0;text-align:center;background:var(--m-card);border-radius:var(--m-radius-sm);margin-bottom:8px}
+
+  /* Chat Messages — ChatGPT Mobile Style */
+  .m-chat-area{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
+  .m-chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--m-sub);text-align:center;padding:20px}
+  .m-chat-empty-ic{font-size:3rem;margin-bottom:12px}
+  .m-chat-empty h3{font-size:1rem;color:var(--m-text);margin-bottom:4px}
+  .m-chat-empty p{font-size:.8rem}
+
+  .m-msg{display:flex;gap:8px;max-width:90%}
+  .m-msg.user{align-self:flex-end;flex-direction:row-reverse}
+  .m-msg.asst{align-self:flex-start}
+  .m-msg-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
+  .m-msg.user .m-msg-av{background:var(--m-pri-light)}
+  .m-msg.asst .m-msg-av{background:#F0EDF1}
+  .m-msg-content{background:var(--m-card);padding:10px 14px;border-radius:16px;box-shadow:var(--m-shadow);line-height:1.65;font-size:.84rem;word-break:break-word}
+  .m-msg.user .m-msg-content{background:var(--m-pri);color:#fff}
+  .m-msg-content h2{font-size:.95rem;margin:4px 0 2px}
+  .m-msg-content h3{font-size:.85rem;margin:4px 0 2px}
+  .m-msg-content p{margin-bottom:3px}
+  .m-msg-content table{width:100%;border-collapse:collapse;margin:6px 0;font-size:.75rem}
+  .m-msg-content th{background:var(--m-pri-light);color:var(--m-pri-dark);font-weight:700;padding:6px 8px;text-align:left;border:1px solid var(--m-border)}
+  .m-msg-content td{padding:5px 8px;border:1px solid var(--m-border)}
+  .m-msg-content code{background:var(--m-pri-light);padding:1px 4px;border-radius:3px;font-size:.75rem}
+  .m-msg-content strong{color:var(--m-pri-dark)}
+  .m-msg.user .m-msg-content strong{color:#E8E0F0}
+  .m-msg-content ul,.m-msg-content ol{padding-left:16px;margin:2px 0}
+  .m-msg-content blockquote{border-left:2px solid var(--m-pri);padding-left:8px;margin:3px 0;color:var(--m-sub)}
+
+  /* Chat Input Bar */
+  .m-chat-input-wrap{display:flex;gap:8px;padding:8px 12px;background:var(--m-card);border-top:0.5px solid var(--m-border);align-items:flex-end;position:sticky;bottom:0;z-index:10}
+  .m-chat-input-wrap textarea{flex:1;min-height:40px;max-height:100px;padding:10px 16px;font-size:16px;border:0.5px solid var(--m-border);border-radius:20px;background:var(--m-bg);outline:none;font-family:inherit;resize:none;color:var(--m-text)}
+  .m-chat-input-wrap textarea:focus{border-color:var(--m-pri);background:var(--m-card)}
+  .m-chat-send{width:40px;height:40px;border-radius:50%;border:none;background:var(--m-pri);color:#fff;font-size:1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:inherit}
+  .m-chat-send:disabled{opacity:.4}
+  .m-chat-config-btn{width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--m-sub);font-size:1.1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+
+  /* ═══════ STUDENT PAGE ═══════ */
+  .m-stu-list{overflow-y:auto;padding:12px 16px}
+  .m-stu-card-item{background:var(--m-card);border-radius:var(--m-radius);padding:16px;margin-bottom:10px;box-shadow:var(--m-shadow);cursor:pointer;transition:transform .15s}
+  .m-stu-card-item:active{transform:scale(.98);background:var(--m-pri-light)}
+  .m-stu-card-top{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .m-stu-card-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--m-pri),var(--m-pri-dark));display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;color:#fff}
+  .m-stu-card-name{font-weight:700;font-size:.88rem;color:var(--m-text)}
+  .m-stu-card-school{font-size:.7rem;color:var(--m-sub)}
+  .m-stu-card-stats{display:flex;gap:14px;font-size:.7rem;color:var(--m-sub)}
+  .m-student-selected{border:2px solid var(--m-pri);background:var(--m-pri-light)}
+
+  /* ═══════ PROFILE PAGE ═══════ */
+  .m-prof-header{text-align:center;padding:30px 16px 20px}
+  .m-prof-av{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--m-pri),var(--m-pri-dark));display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 10px;color:#fff}
+  .m-prof-name{font-size:1.1rem;font-weight:700;color:var(--m-text)}
+  .m-prof-phone{font-size:.76rem;color:var(--m-sub);margin-top:2px}
+  .m-settings{overflow-y:auto;padding:0 16px}
+  .m-set-group{margin-bottom:16px}
+  .m-set-grouplbl{font-size:.68rem;color:var(--m-sub);text-transform:uppercase;letter-spacing:.6px;padding:8px 0 4px;font-weight:700}
+  .m-set-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--m-card);border-radius:var(--m-radius-sm);font-size:.86rem;cursor:pointer;margin-bottom:1px;color:var(--m-text);box-shadow:var(--m-shadow)}
+  .m-set-item-val{font-size:.74rem;color:var(--m-sub)}
+  .m-set-danger{color:#E57373!important}
+
+  /* ═══════ BOTTOM SHEET ═══════ */
+  .m-sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:400;display:none}
+  .m-sheet-overlay.open{display:block}
+  .m-sheet{position:fixed;bottom:0;left:0;right:0;z-index:401;height:85vh;background:var(--m-card);border-radius:20px 20px 0 0;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow:hidden}
+  .m-sheet.open{transform:translateY(0)}
+  .m-sheet-handle{width:32px;height:4px;background:var(--m-border);border-radius:2px;margin:10px auto 8px;flex-shrink:0}
+  .m-sheet-header{display:flex;align-items:center;justify-content:space-between;padding:6px 16px 8px;border-bottom:0.5px solid var(--m-border);flex-shrink:0}
+  .m-sheet-title{font-size:.9rem;font-weight:700;color:var(--m-text)}
+  .m-sheet-close{font-size:1.2rem;background:none;border:none;cursor:pointer;color:var(--m-sub);padding:4px 8px}
+  .m-sheet-body{flex:1;overflow-y:auto;padding:12px 16px}
+  .m-sheet-actions{display:flex;gap:8px;padding:12px 16px;border-top:0.5px solid var(--m-border);flex-shrink:0}
+  .m-sheet-btn{flex:1;padding:10px;border-radius:10px;border:none;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;text-align:center}
+  .m-sheet-btn-primary{background:var(--m-pri);color:#fff}
+  .m-sheet-btn-outline{background:transparent;color:var(--m-text);border:1px solid var(--m-border)}
+
+  /* ═══════ UTILITY ═══════ */
+  .m-loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--m-sub);font-size:.85rem}
+  .m-dots{display:flex;gap:3px;padding:4px 0}
+  .m-dots span{width:5px;height:5px;border-radius:50%;background:var(--m-sub);animation:mDotBounce 1.4s infinite ease-in-out both}
+  .m-dots span:nth-child(1){animation-delay:-.32s}
+  .m-dots span:nth-child(2){animation-delay:-.16s}
+  @keyframes mDotBounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
+
+  /* ═══════ HISTORY LIST (in agent page) ═══════ */
+  .m-history-list{padding:8px 16px}
+  .m-history-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--m-card);border-radius:var(--m-radius-sm);margin-bottom:6px;cursor:pointer;box-shadow:var(--m-shadow)}
+  .m-history-item:active{background:var(--m-pri-light)}
+  .m-history-title{flex:1;font-size:.82rem;font-weight:600;color:var(--m-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .m-history-time{font-size:.65rem;color:var(--m-sub);flex-shrink:0}
+  .m-history-delete{font-size:.8rem;background:none;border:none;cursor:pointer;color:var(--m-sub);opacity:.5;padding:4px}
+}
+</style>
+</head>
+<body>
+
+<div class="debug-bar">
+  <span class="debug-dot" id="dbgDot"></span>
+  <span id="dbgMsg">启动中...</span>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-header">
+      <img class="sb-logo-img" src="/logo.png" width="36" height="36" alt="Melix">
+      <div><div class="sb-title">Melix Teacher</div><div class="sb-sub">AI Teaching Workspace</div></div>
+    </div>
+    <div class="sb-scroll" id="sbScroll">
+      <div class="sb-sec">
+        <div class="sb-sec-hd"><span class="sb-sec-lbl">📚 AI 工作台</span></div>
+        <button class="sb-agent active" data-agent="grammar" onclick="switchAgent('grammar',this)"><span class="sb-agent-ic">📐</span><span class="sb-agent-lb">语法中心</span><span class="sb-agent-bg">刷题</span></button>
+        <button class="sb-agent" data-agent="exam" onclick="switchAgent('exam',this)"><span class="sb-agent-ic">📋</span><span class="sb-agent-lb">智能组卷</span><span class="sb-agent-bg">出卷</span></button>
+        <button class="sb-agent" data-agent="writing" onclick="switchAgent('writing',this)"><span class="sb-agent-ic">✍️</span><span class="sb-agent-lb">作文中心</span><span class="sb-agent-bg">写作</span></button>
+        <button class="sb-agent" data-agent="vocabulary" onclick="switchAgent('vocabulary',this)"><span class="sb-agent-ic">📚</span><span class="sb-agent-lb">智能词汇检测</span><span class="sb-agent-bg">测词</span></button>
+      </div>
+      <div class="sb-sec">
+        <div class="sb-sec-hd"><span class="sb-sec-lbl">🕘 历史会话</span><button class="sb-sec-btn" id="sbScopeBtn" onclick="toggleConvScope()" title="切换显示全部/当前 Agent 的会话"></button><button class="sb-sec-btn" onclick="newConv()">➕ 新建</button></div>
+        <input class="sb-search" id="sbConvSearch" type="text" placeholder="🔍 搜索会话..." oninput="renderConvList()">
+        <div id="sbConvList"><div class="sb-empty">暂无会话记录</div></div>
+      </div>
+      <div class="sb-sec">
+        <div class="sb-sec-hd"><span class="sb-sec-lbl">⚙ 设置</span></div>
+        <button class="sb-set" onclick="toggleKB()"><span class="sb-set-ic">📊</span>知识库状态</button>
+        <button class="sb-set" onclick="cycleDifficulty()"><span class="sb-set-ic">📊</span>难度：<span id="sbDiffLbl">自动</span></button>
+        <button class="sb-set" onclick="sessionCloudRestore()"><span class="sb-set-ic">☁️</span>恢复云端会话</button>
+      </div>
+    </div>
+  </nav>
+  <div class="sb-resizer" id="sbResizer"></div>
+
+  <!-- MAIN PANEL -->
+  <div class="main-panel" id="mainPanel">
+    <div class="mp-header">
+      <span class="mp-agent-badge" id="mpAgentBadge">📐 语法中心</span>
+      <span class="mp-info" id="mpDiffInfo"></span>
+      <div class="mp-actions">
+        <button class="mp-btn" id="mpConfigToggle" onclick="toggleConfig()" title="展开/收起上方配置向导" style="font-weight:600">⚙ 配置/向导</button>
+        <button class="mp-btn" onclick="exportDoc('exam')">📝 试卷版</button>
+        <button class="mp-btn" onclick="exportDoc('answer')">📋 答案版</button>
+        <button class="mp-btn" onclick="exportDoc('teacher')">📘 教师版</button>
+      </div>
+    </div>
+    <div class="mp-config" id="mpConfig" style="max-height:0">
+      <div class="mp-config-inner" id="mpConfigInner"></div>
+    </div>
+    <div class="mp-messages" id="mpMessages">
+      <div class="mp-empty" id="mpEmpty">
+        <div class="mp-empty-ic">🎓</div>
+        <h3>Melix Teacher Workspace</h3>
+        <p>在左侧选择 Agent，配置参数后开始工作<br>每个 Agent 拥有独立的会话记录</p>
+      </div>
+      <div id="kbDash" style="display:none;padding:12px 16px;font-size:.8rem;line-height:1.8;background:var(--input-bg);border-radius:var(--radius)"><div id="kbContent">加载中...</div></div>
+    </div>
+    <div class="mp-input-wrap">
+      <textarea id="userInput" rows="1" placeholder="输入教学需求..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
+      <button class="mp-send" id="sendBtn" onclick="sendMsg()">➤</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════ MOBILE APP V5 ═══════ -->
+<div id="mobile-app" class="mobile-only"></div>
+
+<!-- Bottom Navigation -->
+<nav class="m-bnav mobile-only" id="mBnav">
+  <button class="m-bnav-item active" data-tab="home" onclick="M.navigate('home')"><span class="m-bnav-item-ic">🏠</span>首页</button>
+  <button class="m-bnav-item" data-tab="workspace" onclick="M.navigate('workspace')"><span class="m-bnav-item-ic">📚</span>工作台</button>
+  <button class="m-bnav-item" data-tab="students" onclick="M.navigate('students')"><span class="m-bnav-item-ic">👩‍🎓</span>学生</button>
+  <button class="m-bnav-item" data-tab="profile" onclick="M.navigate('profile')"><span class="m-bnav-item-ic">👤</span>我的</button>
+</nav>
+
+<!-- Bottom Sheet -->
+<div class="m-sheet-overlay mobile-only" id="mSheetOverlay" onclick="M.closeSheet()"></div>
+<div class="m-sheet mobile-only" id="mSheet">
+  <div class="m-sheet-handle"></div>
+  <div class="m-sheet-header"><span class="m-sheet-title" id="mSheetTitle">预览</span><button class="m-sheet-close" onclick="M.closeSheet()">✕</button></div>
+  <div class="m-sheet-body" id="mSheetBody"></div>
+  <div class="m-sheet-actions" id="mSheetActions"></div>
+</div>
+
+<select id="difficultySelect" style="display:none" onchange="updateDifficulty()">
+  <option value="">自动</option><option value="小学">小学</option><option value="小升初">小升初</option><option value="初一">初一</option><option value="初二">初二</option><option value="初三">初三</option><option value="中考">中考</option><option value="高一">高一</option><option value="高二">高二</option><option value="高三">高三</option><option value="高考">高考</option>
+</select>
+
+<script>
+// ═══════════════════════════════════════
+// AUTH CHECK
+// ═══════════════════════════════════════
+(function(){
+  var token=localStorage.getItem('tutor_token');
+  if(!token){window.location.href='/login.html';return}
+  fetch('/api/auth/me',{headers:{'Authorization':'Bearer '+token}})
+    .then(function(r){if(!r.ok)throw new Error('auth');return r.json()})
+    .then(function(d){if(!d.user)throw new Error('auth');window._tutorUser=d.user})
+    .catch(function(){localStorage.removeItem('tutor_token');window.location.href='/login.html'});
+})();
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const AGENT_NAMES={grammar:'📐 语法中心',exam:'📋 智能组卷',writing:'✍️ 作文中心',vocabulary:'📚 智能词汇检测'};
+const AGENT_PREFIX={grammar:'gram',exam:'exam',writing:'write',vocabulary:'vocab'};
+const GRAMMAR_DATA={
+  '词法':['名词','冠词','代词','数词','介词','连词','形容词','副词','动词','情态动词'],
+  '时态':['一般现在时','一般过去时','一般将来时','现在进行时','过去进行时','现在完成时','过去完成时'],
+  '语态':['被动语态','虚拟语气'],
+  '非谓语':['动名词','不定式','分词'],
+  '从句':['宾语从句','状语从句','定语从句','主语从句','表语从句','同位语从句'],
+  '句式':['五种基本句型','There be','强调句','倒装句','省略','反意疑问句']
+};
+const TEXTBOOK_DATA={
+  '小学':{publishers:['人教PEP','北京版','外研版','北师大版'],grades:['三年级','四年级','五年级','六年级'],semesters:['上册','下册']},
+  '初中':{publishers:['人教版','北京版','外研版','北师大版'],grades:['初一','初二','初三'],semesters:['上册','下册']},
+  '高中':{publishers:['人教2019版','北京版','外研版'],grades:['高一','高二','高三'],semesters:['必修一','必修二','必修三','选择性必修一','选择性必修二']}
+};
+
+function makeSession(agent){
+  const pfx=(AGENT_PREFIX[agent]||'conv')+'_';
+  const id=pfx+Date.now();
+  return {conversations:[{id:id,agent:agent,title:'新会话',messages:[],createdAt:Date.now()}],activeConvId:id,selected:[],examType:'',score:'100',duration:'60',uploadedFile:null,ocrText:'',writeType:'',writeAction:''};
+}
+
+const state={
+  agent:'grammar',difficulty:'',
+  sessions:{
+    grammar:makeSession('grammar'),
+    exam:makeSession('exam'),
+    writing:makeSession('writing'),
+    vocabulary:makeSession('vocabulary'),
+  },
+  teaching:{stage:'',publisher:'',grade:'',semester:'',unit:''},
+  vocab:{tab:'gen',step:1,bankId:'',count:20,level:'基础',stage:'',parsed:null},
+  isLoading:false
+};
+
+let streamEl=null;
+
+// ═══════════════════════════════════════
+// MARKDOWN
+// ═══════════════════════════════════════
+function md(text){
+  if(!text)return'';
+  var h=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  h=h.replace(/```(\w*)\n?([\s\S]*?)```/g,'<pre><code>$2</code></pre>');
+  h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h=h.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/\*([^*]+)\*/g,'<em>$1</em>');
+  h=h.replace(/^###\s(.+)$/gm,'<h3>$1</h3>');
+  h=h.replace(/^##\s(.+)$/gm,'<h2>$1</h2>');
+  h=h.replace(/^#\s(.+)$/gm,'<h1>$1</h1>');
+  h=h.replace(/^&gt;\s?(.*)$/gm,'<blockquote>$1</blockquote>');
+  h=h.replace(/((?:^\|.+\|\n?)+)/gm,function(m){
+    var lines=m.trim().split('\n');
+    if(lines.length<2)return m;
+    var html='<table class="md-table">';
+    lines.forEach(function(line,i){
+      var cells=line.split('|').filter(function(_,j,arr){return j>0&&j<arr.length-1}).map(function(c){return c.trim()});
+      if(i===0)html+='<thead><tr>'+cells.map(function(c){return'<th>'+c+'</th>'}).join('')+'</tr></thead>';
+      else if(i===1&&cells.every(function(c){return /^[-: ]+$/.test(c)}))html+='<tbody>';
+      else html+='<tr>'+cells.map(function(c){return'<td>'+c+'</td>'}).join('')+'</tr>';
+    });
+    html+='</tbody></table>';
+    return html;
+  });
+  h=h.replace(/^- (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/((?:<li>.*<\/li>\s*)+)/g,'<ul>$1</ul>');
+  h=h.replace(/<\/ul>\s*<ul>/g,'');
+  h=h.replace(/\n\n/g,'</p><p>');
+  h=h.replace(/\n/g,'<br>');
+  h='<p>'+h+'</p>';
+  h=h.replace(/<p>\s*<\/p>/g,'');
+  h=h.replace(/<p><table/g,'<table');
+  h=h.replace(/<\/table><\/p>/g,'</table>');
+  return h;
+}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function dbg(m,s){
+  const el=document.getElementById('dbgMsg'),dot=document.getElementById('dbgDot');
+  if(el)el.textContent=m;
+  if(dot){dot.className='debug-dot';if(s==='ok')dot.className='debug-dot ok';if(s==='err')dot.className='debug-dot err'}
+}
+
+function cur(){return state.sessions[state.agent]}
+function curConv(){
+  const s=cur();
+  // Filter out any conversations that don't belong to this agent (data integrity safety net)
+  if(s.conversations&&s.conversations.length>0){
+    s.conversations=s.conversations.filter(function(c){return !c.agent||c.agent===state.agent});
+  }
+  if(!s.conversations||!s.conversations.length){const pfx=(AGENT_PREFIX[state.agent]||'conv')+'_';s.conversations=[{id:pfx+Date.now(),agent:state.agent,title:'新会话',messages:[],createdAt:Date.now()}];s.activeConvId=s.conversations[0].id}
+  let c=s.conversations.find(function(x){return x.id===s.activeConvId});
+  if(!c){c=s.conversations[0];s.activeConvId=c.id}
+  return c;
+}
+function curMsgs(){return curConv().messages}
+
+// 🐛 历史会话消失根因之一：localStorage 写满后 setItem 抛错被静默吞掉 → 之后所有保存全部失效，
+//   刷新后历史全丢。现改为：写满时自动裁掉最旧的非收藏会话（跳过当前会话）重试，仍失败才提示。
+function statePayload(){
+  return{agent:state.agent,difficulty:state.difficulty,
+    sessions:state.sessions,teaching:state.teaching,
+    vocab:{tab:state.vocab.tab,step:state.vocab.step,bankId:state.vocab.bankId,count:state.vocab.count,level:state.vocab.level,stage:state.vocab.stage}};
+}
+function saveAll(){
+  try{localStorage.setItem('tutor_v4',JSON.stringify(statePayload()))}
+  catch(e){_pruneAndSave()}
+  sessionCloudSync();
+}
+function _pruneAndSave(){
+  for(var round=0;round<40;round++){
+    var victim=null,vTime=Infinity;
+    Object.keys(state.sessions).forEach(function(ag){
+      var s=state.sessions[ag];
+      (s.conversations||[]).forEach(function(c){
+        if(!c.messages||!c.messages.length||c.fav||c.id===s.activeConvId)return;
+        var t=c.createdAt||0;if(t<vTime){vTime=t;victim={ag:ag,id:c.id}}
+      });
+    });
+    if(!victim)break;
+    var s=state.sessions[victim.ag];
+    s.conversations=s.conversations.filter(function(c){return c.id!==victim.id});
+    if(s.activeConvId===victim.id)s.activeConvId=(s.conversations[0]||{}).id||null;
+    try{localStorage.setItem('tutor_v4',JSON.stringify(statePayload()));renderConvList();dbg('⚠️ 本地存储已满，已自动清理最旧会话','err');return true}catch(e2){}
+  }
+  dbg('⚠️ 本地存储已满且无法清理，历史保存失败','err');
+  return false;
+}
+function loadAll(){
+  try{
+    const raw=localStorage.getItem('tutor_v4');
+    if(raw){
+      const d=JSON.parse(raw);
+      state.agent=d.agent||'grammar';state.difficulty=d.difficulty||'';
+      // V5.1: teaching/grade agents removed — migrate stale default to grammar
+      if(!state.sessions[state.agent])state.agent='grammar';
+      if(d.teaching)state.teaching=d.teaching;
+      if(d.vocab)state.vocab=Object.assign(state.vocab,d.vocab,{parsed:null});
+      if(d.sessions){
+        Object.keys(d.sessions).forEach(function(k){
+          if(state.sessions[k]&&d.sessions[k]){
+            const saved=d.sessions[k];
+            if(saved.conversations&&saved.conversations.length>0){
+              // Data migration: tag old conversations with their agent bucket + filter cross-contamination
+              state.sessions[k].conversations=saved.conversations.filter(function(c){return !c.agent||c.agent===k}).map(function(c){c.agent=c.agent||k;return c});
+            }
+            if(saved.selected)state.sessions[k].selected=saved.selected;
+            ['examType','score','duration','writeType','writeAction','ocrText'].forEach(function(f){if(saved[f]!==undefined)state.sessions[k][f]=saved[f]});
+          }
+        });
+      }
+    }
+  }catch(e){localStorage.removeItem('tutor_v4')}
+  Object.values(state.sessions).forEach(function(s){
+    if(!s.conversations)s.conversations=[];
+    if(!Array.isArray(s.selected))s.selected=[];
+  });
+}
+
+// ═══════════════════════════════════════
+// WORD EXPORT
+// ═══════════════════════════════════════
+const AI_CHATTER=[/^好的[，,。！!][\s\S]{0,60}$/gm,/^收到[，,。！!][\s\S]{0,60}$/gm,/^下面[我我们]?[开始将给来][\s\S]{0,80}$/gm,/^首先[，,]?[\s\S]{0,80}$/gm,/^现在[，,]?[\s\S]{0,80}$/gm,/^我[将会建议][\s\S]{0,80}$/gm];
+
+function cleanWord(text){
+  let t=text;
+  AI_CHATTER.forEach(p=>{t=t.replace(p,'')});
+  t=t.replace(/```[\s\S]*?```/g,m=>m.replace(/```\w*\n?/g,'').replace(/```/g,''));
+  t=t.replace(/`([^`]+)`/g,'$1').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1');
+  t=t.replace(/^#{1,6}\s/gm,'').replace(/^&gt;\s?/gm,'').replace(/^>\s?/gm,'');
+  t=t.replace(/^[-*_=]{3,}\s*$/gm,'').replace(/[ ]{2,}/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+  return t;
+}
+
+function buildDocTitle(section,agentArg){
+  const diff=state.difficulty||'';const agent=agentArg||state.agent;let prefix='';
+  if(agent==='grammar'){const sel=state.sessions.grammar.selected||[];prefix=diff+'语法-'+((sel.length>0)?sel.join('、'):'综合')}
+  else if(agent==='exam'){prefix=diff+(state.sessions.exam.examType||'英语试卷')}
+  else if(agent==='writing'){prefix=diff+(state.sessions.writing.writeType||'英语作文')}
+  else if(agent==='vocabulary'){prefix=(state.vocab.stage||diff||'英语')+'词汇检测'+(state.vocab.count||20)+'题'}
+  else{prefix=diff||'英语'}
+  const labels={exam:'试卷版',answer:'答案版',teacher:'教师版（含解析）'};
+  return prefix+' — '+labels[section];
+}
+
+function buildWordHTML(section,msgsArg,agentArg){
+  const msgs=msgsArg||curMsgs();const agent=agentArg||state.agent;
+  const now=new Date().toLocaleString('zh-CN');const title=buildDocTitle(section,agent);
+  let rawContent='';
+  msgs.forEach(msg=>{
+    if(msg.role!=='assistant')return;let text=msg.content;
+    if(section==='exam'){const m=text.match(/【试卷版】([\s\S]*?)(?=【答案版】|【教师版】|$)/);rawContent+=(m?m[1]:text)+'\n'}
+    else if(section==='answer'){const m=text.match(/【答案版】([\s\S]*?)(?=【教师版】|$)/);rawContent+=(m?m[1]:'')+'\n'}
+    else if(section==='teacher'){const m=text.match(/【教师版】([\s\S]*)/);rawContent+=(m?m[1]:text)+'\n'}
+  });
+  // 词汇模块：剥离【教师版】尾部的 json 机器数据块与「## 机器数据」标题；目标段为空时回退全文，保证 Word 永不空白
+  if(agent==='vocabulary'){
+    rawContent=rawContent.replace(/```json[\s\S]*?```/g,'').replace(/^##\s*机器数据[^\n]*$/gm,'');
+    if(!rawContent.trim()){
+      var _full='';msgs.forEach(function(m){if(m.role==='assistant')_full+=(m.content||'')+'\n';});
+      rawContent=_full.replace(/```json[\s\S]*?```/g,'').replace(/^##\s*机器数据[^\n]*$/gm,'').replace(/【试卷版】|【答案版】|【教师版】/g,'\n');
+    }
+  }
+  // Render markdown tables to HTML, then convert to Word-native tables
+  let rendered=md(rawContent);
+  // Convert <table> to Word-compatible format with borders
+  rendered=rendered
+    .replace(/<table class="md-table">/g,'<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;margin:10px 0">')
+    .replace(/<th>/g,'<th style="background:#E9E4F7;color:#5F4B8B;font-weight:bold;font-family:SimHei,sans-serif;padding:6px 10px;text-align:left">')
+    .replace(/<td>/g,'<td style="padding:5px 10px;text-align:left;vertical-align:middle;word-break:keep-all">');
+  // Clean remaining markdown from non-table content
+  rendered=cleanWord(rendered);
+  if(!rendered.trim()||rendered==='<p></p>')rendered='（暂无内容，请先生成）';
+  return'<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>'+title+'</title><style>@page{size:A4;margin:2.5cm}body{font-family:"Microsoft YaHei","Times New Roman",serif;font-size:14px;line-height:1.5;color:#000}h1{text-align:center;font-size:20px;font-family:"Microsoft YaHei",sans-serif}h2{font-size:16px;font-family:"Microsoft YaHei",sans-serif}.info{text-align:center;font-size:12px;border-bottom:1.5px solid #000;padding-bottom:10px;margin-bottom:16px}.content{white-space:pre-wrap}.footer{text-align:center;margin-top:24px;font-size:10px;color:#888;border-top:1px solid #ccc;padding-top:8px}table{page-break-inside:avoid}thead{display:table-header-group}</style></head><body><h1>'+title+'</h1><div class="info">Melix Teacher | 导出时间：'+now+' | 难度：'+(state.difficulty||'默认')+'</div><div class="content">'+rendered+'</div><div class="footer">—— Melix Teacher · 专业教学资料 ——</div></body></html>';
+}
+
+function exportDoc(section){
+  if(!curMsgs().length){alert('请先生成内容再导出');return}
+  exportDocFrom(curMsgs(),state.agent,section);
+}
+// 通用导出入口（桌面端与手机端共用）
+function exportDocFrom(msgs,agent,section){
+  if(!msgs||!msgs.length){alert('请先生成内容再导出');return}
+  const title=buildDocTitle(section,agent);const html=buildWordHTML(section,msgs,agent);
+  const blob=new Blob(['﻿'+html],{type:'application/msword;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;
+  a.download=title+'_'+new Date().toISOString().slice(0,10)+'.doc';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════
+// CONVERSATION MANAGEMENT
+// ═══════════════════════════════════════
+function convTitle(msgs){
+  if(!msgs||!msgs.length)return'新会话';
+  for(let i=0;i<msgs.length;i++){if(msgs[i].role==='user'){
+    let t=msgs[i].content.replace(/【[^】]*】/g,'').trim();
+    t=t.replace(/^你是[^。]{2,30}。/,'').replace(/^请/,'').trim();
+    t=t.split(/[\n。]/)[0].trim();
+    if(t.length>25)t=t.slice(0,25)+'…';
+    return t||'新会话';
+  }}
+  return'新会话';
+}
+function newConv(){
+  if(state.isLoading){alert('⏳ 正在生成中，请等待完成后再新建会话');return}
+  const s=cur();const c=curConv();
+  if(c&&c.messages.length>0)c.title=convTitle(c.messages);
+  const pfx=(AGENT_PREFIX[state.agent]||'conv')+'_';
+  const id=pfx+Date.now();
+  s.conversations.push({id:id,agent:state.agent,title:'新会话',messages:[],createdAt:Date.now()});
+  s.activeConvId=id;
+  if(state.agent==='grammar')s.selected=[];
+  if(state.agent==='grade'){s.uploadedFile=null;s.ocrText='';}
+  if(state.agent==='writing'){s.writeType='';s.writeAction='';}
+  if(state.agent==='exam'){s.examType='';s.score='100';s.duration='60';}
+  renderMsgs();renderConvList();updateEmpty();saveAll();
+}
+function switchConv(convId){
+  if(state.isLoading){alert('⏳ 正在生成中，请等待完成后再切换会话');return}
+  const s=cur();const c=curConv();
+  if(c&&c.messages.length>0)c.title=convTitle(c.messages);
+  s.activeConvId=convId;
+  renderMsgs();renderConvList();updateEmpty();saveAll();
+}
+function deleteConv(convId,ag){
+  if(state.isLoading){alert('⏳ 正在生成中，请稍后再删除');return}
+  const s=(ag&&state.sessions[ag])||cur();
+  if(!s.conversations||s.conversations.length<=1)return;
+  const idx=s.conversations.findIndex(x=>x.id===convId);
+  if(idx<0)return;
+  s.conversations.splice(idx,1);
+  if(s.activeConvId===convId)s.activeConvId=s.conversations[0].id;
+  if(!ag||ag===state.agent)renderMsgs();
+  renderConvList();updateEmpty();saveAll();
+}
+// 🐛 历史会话默认在左侧显示「全部 Agent」（含当前），可切回仅当前；有内容的会话优先靠前
+function convScopeAll(){return localStorage.getItem('melix_conv_scope')!=='cur'}
+function toggleConvScope(){
+  localStorage.setItem('melix_conv_scope',convScopeAll()?'cur':'all');
+  renderConvList();
+}
+function renderConvList(){
+  const el=document.getElementById('sbConvList');if(!el)return;
+  const s=cur();
+  // Double-filter: only show conversations that belong to current agent
+  if(s.conversations&&s.conversations.length>0){
+    s.conversations=s.conversations.filter(function(c){return !c.agent||c.agent===state.agent});
+  }
+  const showAll=convScopeAll();
+  const scopeBtn=document.getElementById('sbScopeBtn');
+  if(scopeBtn)scopeBtn.textContent=showAll?'当前 Agent':'全部 Agent';
+  const q=(document.getElementById('sbConvSearch')||{}).value||'';
+  const kw=q.trim().toLowerCase();
+  // 收集条目：全部模式跨 Agent 汇总（跳过无内容的非当前会话，避免每次刷新产生的空会话刷屏）
+  let entries=[];
+  Object.keys(state.sessions).forEach(function(ag){
+    if(!showAll&&ag!==state.agent)return;
+    (state.sessions[ag].conversations||[]).forEach(function(c){
+      if(c.agent&&c.agent!==ag)return;
+      const hasContent=c.messages&&c.messages.length>0;
+      const isActive=ag===state.agent&&c.id===s.activeConvId;
+      if(showAll&&!hasContent&&!isActive)return;
+      entries.push({c:c,agent:ag,hasContent:hasContent,isActive:isActive});
+    });
+  });
+  if(!entries.length){el.innerHTML='<div class="sb-empty">暂无会话记录</div>';return}
+  if(kw)entries=entries.filter(function(e){return (e.c.title||convTitle(e.c.messages)||'').toLowerCase().includes(kw)});
+  // 收藏优先 → 有内容优先 → 时间新优先
+  entries.sort(function(a,b){
+    return (b.c.fav?1:0)-(a.c.fav?1:0)||b.hasContent-a.hasContent||(b.c.createdAt||0)-(a.c.createdAt||0);
+  });
+  if(!entries.length){el.innerHTML='<div class="sb-empty">无匹配会话</div>';return}
+  const now=Date.now();
+  el.innerHTML=entries.map(function(e){
+    const c=e.c,isActive=e.isActive;
+    let ts='';const diff=now-c.createdAt;
+    if(diff<86400000)ts='今天';else if(diff<172800000)ts='昨天';else if(diff<604800000)ts='本周';else ts=new Date(c.createdAt).toLocaleDateString('zh-CN',{month:'short',day:'numeric'});
+    const title=c.title||convTitle(c.messages)||'新会话';
+    const badge='<span style="font-size:.6rem;padding:1px 5px;border-radius:6px;background:#EEECFA;color:#5B4FC4;flex-shrink:0;margin-right:4px">'+(AGENT_NAMES[e.agent]||e.agent).replace(/^\S+\s/,'')+'</span>';
+    return'<div class="sb-conv'+(isActive?' active':'')+'" onclick="openConv(\''+e.agent+'\',\''+c.id+'\')">'+
+      '<span class="sb-conv-ic">'+(c.fav?'⭐':isActive?'💬':'📄')+'</span>'+
+      '<span class="sb-conv-tl">'+badge+title+'</span>'+
+      '<span class="sb-conv-tm">'+ts+'</span>'+
+      '<span class="sb-conv-act">'+
+        '<button class="sb-conv-act-btn" title="收藏" onclick="event.stopPropagation();toggleFav(\''+c.id+'\',\''+e.agent+'\')">'+(c.fav?'★':'☆')+'</button>'+
+        '<button class="sb-conv-act-btn" title="重命名" onclick="event.stopPropagation();renameConv(\''+c.id+'\',\''+e.agent+'\')">✏</button>'+
+        '<button class="sb-conv-act-btn" title="删除" onclick="event.stopPropagation();deleteConv(\''+c.id+'\',\''+e.agent+'\')">✕</button>'+
+      '</span></div>';
+  }).join('');
+}
+// 点击其它 Agent 的历史会话：先切 Agent 再切会话
+function openConv(agent,convId){
+  if(state.isLoading){alert('⏳ 正在生成中，请等待完成后再切换会话');return}
+  if(agent!==state.agent){
+    const btn=document.querySelector('.sb-agent[data-agent="'+agent+'"]');
+    switchAgent(agent,btn);
+  }
+  switchConv(convId);
+}
+function toggleFav(id,ag){
+  const s=(ag&&state.sessions[ag])||cur();const c=(s.conversations||[]).find(x=>x.id===id);
+  if(c){c.fav=!c.fav;saveAll();renderConvList()}
+}
+function renameConv(id,ag){
+  const s=(ag&&state.sessions[ag])||cur();const c=(s.conversations||[]).find(x=>x.id===id);
+  if(!c)return;
+  const name=prompt('重命名会话：',c.title||'');
+  if(name!==null&&name.trim()){c.title=name.trim();saveAll();renderConvList()}
+}
+
+// ═══════════════════════════════════════
+// MESSAGES
+// ═══════════════════════════════════════
+function renderMsgs(){
+  const c=document.getElementById('mpMessages');
+  c.innerHTML='';streamEl=null;
+  if(state._vocabGenerating){
+    c.innerHTML='<div class="msg asst"><div class="msg-av">🎓</div><div class="msg-content"><strong>✍️ Melix正在出题，请稍后！</strong><div id="vocabGenStatus" style="color:var(--text2);font-size:.78rem;margin-top:4px">'+(state._vocabProgress||'正在准备…')+'</div><span class="load-dots"><span></span><span></span><span></span></span></div></div>';
+    return;
+  }
+  const msgs=curMsgs();
+  msgs.forEach(m=>{if(m.internal)return;const e=createMsgEl(m,false);c.appendChild(e);if(m.streaming)streamEl=e});
+  updateEmpty();
+  if(msgs.length)c.scrollTop=c.scrollHeight;
+}
+function createMsgEl(msg,streaming){
+  const d=document.createElement('div');d.className='msg '+msg.role;
+  d.innerHTML='<div class="msg-av">'+(msg.role==='user'?'👤':'🎓')+'</div><div class="msg-content">'+md(msg.content)+(streaming?'<span class="load-dots"><span></span><span></span><span></span></span>':'')+'</div>';
+  return d;
+}
+function updateStreamEl(content){
+  if(state._vocabGenerating)return;
+  if(streamEl){const cd=streamEl.querySelector('.msg-content');if(cd)cd.innerHTML=md(content)+'<span class="load-dots"><span></span><span></span><span></span></span>';document.getElementById('mpMessages').scrollTop=document.getElementById('mpMessages').scrollHeight}
+}
+function addMsg(role,content,streaming){
+  const msgs=curMsgs();
+  // 🐛 流式增量不再触发 saveAll（原先每个 SSE 增量都全量 JSON.stringify，大会话时严重拖慢出题）；
+  //   持久化由 finishStreaming / sendMsg 末尾的 saveAll 完成
+  if(streaming&&role==='assistant'&&msgs.length>0){const last=msgs[msgs.length-1];if(last.role==='assistant'&&last.streaming){last.content=content;updateStreamEl(content);return}}
+  msgs.push({role,content,streaming});renderMsgs();saveAll();
+}
+function finishStreaming(){
+  const msgs=curMsgs();
+  if(msgs.length>0)msgs[msgs.length-1].streaming=false;
+  if(streamEl){const cd=streamEl.querySelector('.msg-content');if(cd&&msgs.length>0)cd.innerHTML=md(msgs[msgs.length-1].content);streamEl=null}
+  saveAll();
+}
+function updateEmpty(){
+  // Desktop: show/hide empty state in main panel
+  if(window.innerWidth>767){
+    const es=document.getElementById('mpEmpty');
+    if(!es)return;
+    es.style.display=curMsgs().length===0?'flex':'none';
+  }
+  // Mobile: handled by m-page content rendering, no-op
+}
+
+// ═══════════════════════════════════════
+// AGENT SWITCHING
+// ═══════════════════════════════════════
+function switchAgent(agent,btn){
+  // 🐛 修复：生成期间切换会把流式内容写进别的 Agent 会话
+  if(state.isLoading){alert('⏳ 正在生成中，请等待完成后再切换');return}
+  dbg('切换到 '+AGENT_NAMES[agent],'ok');
+  state.agent=agent;
+  document.querySelectorAll('.sb-agent').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  document.getElementById('mpAgentBadge').textContent=AGENT_NAMES[agent];
+  buildConfig(agent);
+  renderMsgs();
+  renderConvList();
+  updateEmpty();
+  saveAll();
+}
+
+// ═══════════════════════════════════════
+// STUDENT & DIFFICULTY
+// ═══════════════════════════════════════
+function updateDifficulty(){
+  state.difficulty=document.getElementById('difficultySelect').value;
+  document.getElementById('mpDiffInfo').textContent=state.difficulty?'📊 '+state.difficulty:'';
+  document.getElementById('sbDiffLbl').textContent=state.difficulty||'自动';
+  saveAll();
+}
+function cycleDifficulty(){
+  const sel=document.getElementById('difficultySelect');
+  const opts=Array.from(sel.options).filter(o=>o.value);
+  const idx=opts.findIndex(o=>o.value===state.difficulty);
+  sel.value=idx+1<opts.length?opts[idx+1].value:opts[0].value;
+  updateDifficulty();
+}
+
+// ═══════════════════════════════════════
+// AGENT CONFIG PANELS
+// ═══════════════════════════════════════
+function toggleConfig(){
+  const el=document.getElementById('mpConfig');if(!el)return;
+  if(el.style.maxHeight==='0'||el.style.maxHeight===''){
+    el.style.maxHeight='none';
+    requestAnimationFrame(()=>{el.style.maxHeight=el.scrollHeight+'px'});
+  }else{
+    el.style.maxHeight='0';
+  }
+}
+function buildConfig(agent){
+  const el=document.getElementById('mpConfig');
+  const inner=document.getElementById('mpConfigInner');
+  let html='';
+  if(agent==='grammar'){
+    html='<div class="cfg-title">📐 语法知识点 · 支持多选 <span id="gramCnt" style="font-size:.8rem;color:var(--text2)"></span></div><div class="gram-grid">';
+    for(const[cat,items]of Object.entries(GRAMMAR_DATA)){
+      html+='<div class="gram-cat">'+cat+'</div>';
+      items.forEach(item=>{const sel=cur().selected||[];html+='<div class="gram-item'+(sel.includes(item)?' sel':'')+'" onclick="toggleGram(\''+item+'\',this)">'+item+'</div>'});
+    }
+    html+='</div><div class="cfg-row" style="margin-top:10px"><button class="cfg-btn" id="gramBtn" onclick="applyGrammar()">📐 '+(cur().selected&&cur().selected.length>0?'组合出题（已选'+cur().selected.length+'项）':'请点击选择语法点')+'</button></div>';
+  }else if(agent==='exam'){
+    html='<div class="cfg-title">📋 组卷配置</div><div class="cfg-row">';
+    html+='<select class="cfg-sel" id="examType" onchange="cur().examType=this.value;saveAll()"><option value="">试卷类型</option><option value="单元测试">单元测试</option><option value="期中测试">期中测试</option><option value="期末测试">期末测试</option><option value="月考">月考</option><option value="小升初模拟">小升初模拟</option><option value="中考模拟">中考模拟</option><option value="高考模拟">高考模拟</option></select>';
+    html+='<select class="cfg-sel" id="examScore" onchange="cur().score=this.value;saveAll()"><option value="100">100分</option><option value="120">120分</option><option value="150">150分</option></select>';
+    html+='<select class="cfg-sel" id="examDuration" onchange="cur().duration=this.value;saveAll()"><option value="60">60分钟</option><option value="90">90分钟</option><option value="120">120分钟</option></select>';
+    html+='</div><div class="cfg-row"><button class="cfg-btn" onclick="applyExam()">📋 生成试卷</button></div>';
+  }else if(agent==='writing'){
+    html='<div class="cfg-title">✍️ 作文工具</div><div class="cfg-row">';
+    html+='<select class="cfg-sel" id="writeType" onchange="cur().writeType=this.value;saveAll()"><option value="">作文类型</option><option value="看图写话">看图写话</option><option value="书信">书信</option><option value="通知">通知</option><option value="演讲稿">演讲稿</option><option value="邀请信">邀请信</option><option value="感谢信">感谢信</option><option value="申请信">申请信</option><option value="日记">日记</option><option value="观点类">观点类</option><option value="图表类">图表类</option><option value="议论文">议论文</option><option value="记叙文">记叙文</option><option value="说明文">说明文</option><option value="读后续写">读后续写</option><option value="概要写作">概要写作</option><option value="开放作文">开放作文</option></select>';
+    html+='<select class="cfg-sel" id="writeAction" onchange="cur().writeAction=this.value;saveAll()"><option value="">操作</option><option value="命题">作文命题</option><option value="模板">作文模板</option><option value="批改">作文批改</option></select>';
+    html+='</div><div class="cfg-row"><button class="cfg-btn" onclick="applyWriting()">✍️ 开始</button></div>';
+  }else if(agent==='vocabulary'){
+    html=renderVocabWizard();
+  }
+  inner.innerHTML=html;
+  el.style.maxHeight='none';
+  requestAnimationFrame(()=>{el.style.maxHeight=el.scrollHeight+'px'});
+  setTimeout(()=>restoreConfig(agent),50);
+}
+function restoreConfig(agent){
+  if(agent==='exam'){
+    const s=cur();
+    if(s.examType){const e=document.getElementById('examType');if(e)e.value=s.examType}
+    if(s.score){const e=document.getElementById('examScore');if(e)e.value=s.score}
+    if(s.duration){const e=document.getElementById('examDuration');if(e)e.value=s.duration}
+  }
+  if(agent==='writing'){
+    const s=cur();
+    if(s.writeType){const e=document.getElementById('writeType');if(e)e.value=s.writeType}
+    if(s.writeAction){const e=document.getElementById('writeAction');if(e)e.value=s.writeAction}
+  }
+  if(agent==='grammar')updateGramCount();
+  const el=document.getElementById('mpConfig');
+  el.style.maxHeight='none';
+  requestAnimationFrame(()=>{el.style.maxHeight=el.scrollHeight+'px'});
+}
+function toggleGram(item,el){
+  if(!cur().selected)cur().selected=[];
+  const s=cur().selected;const idx=s.indexOf(item);
+  if(idx>=0)s.splice(idx,1);else s.push(item);
+  el.classList.toggle('sel');updateGramCount();saveAll();
+}
+function updateGramCount(){
+  const cnt=(cur().selected||[]).length;
+  const btn=document.getElementById('gramBtn');
+  const lbl=document.getElementById('gramCnt');
+  if(lbl)lbl.textContent=cnt>0?'（已选'+cnt+'项）':'';
+  if(btn)btn.textContent=cnt>0?'📐 组合出题（已选'+cnt+'项：'+cur().selected.join('、')+'）':'📐 请点击选择语法点';
+}
+// ═══════════════════════════════════════
+// APPLY FUNCTIONS
+// ═══════════════════════════════════════
+function applyGrammar(){
+  const btn=document.getElementById('gramBtn');if(btn){btn.textContent='⏳ 生成中...';btn.disabled=true}
+  if(!cur().selected)cur().selected=[];
+  const selected=cur().selected;
+  if(!selected.length){alert('请至少选择一个语法点');if(btn){btn.textContent='📐 请点击选择语法点';btn.disabled=false}return}
+  const diff=state.difficulty||'';
+  let msg='你是北京市英语语法教学专家。请讲解：'+selected.join('、')+'。难度：'+diff+'\n\n按以下模块输出：\n一、概念精讲\n二、对比辨析\n三、北京考试考法\n四、常见错误\n五、专项练习（标注【试卷版】：一、单选20题 二、填空10题 三、句型转换5题 四、改错5题）\n\n单独输出【答案版】和【教师版（含解析）】。直接输出最终内容。';
+  document.getElementById('userInput').value=msg;sendMsg();
+  setTimeout(()=>{if(btn){btn.textContent='📐 组合出题（已选'+cur().selected.length+'项）';btn.disabled=false}},2000);
+}
+function applyExam(){
+  const btn=document.querySelector('#mpConfig .cfg-btn');if(btn){btn.textContent='⏳ 组卷中...';btn.disabled=true}
+  const sess=cur();
+  sess.examType=document.getElementById('examType')?.value||sess.examType;sess.score=document.getElementById('examScore')?.value||sess.score;sess.duration=document.getElementById('examDuration')?.value||sess.duration;saveAll();
+  const diff=state.difficulty||'';
+  let msg='你是北京市英语命题专家。生成一份'+(sess.examType||'综合')+'英语试卷。总分'+sess.score+'分，时长'+sess.duration+'分钟，难度：'+diff+'\n\n试卷首页标明：学校____ 姓名____ 班级____ 得分____\n按大题号（一、二、三…）编排。输出：【试卷版】纯试题 →【答案版】答案+解析 →【教师版】详细解析+知识点分布。参考北京真实考试规范。直接输出最终试卷。';
+  document.getElementById('userInput').value=msg;sendMsg();
+  setTimeout(()=>{if(btn){btn.textContent='📋 生成试卷';btn.disabled=false}},2000);
+}
+function applyWriting(){
+  const btn=document.querySelector('#mpConfig .cfg-btn');if(btn){btn.textContent='⏳ 处理中...';btn.disabled=true}
+  const sess=cur();sess.writeType=document.getElementById('writeType')?.value||sess.writeType;sess.writeAction=document.getElementById('writeAction')?.value||sess.writeAction;saveAll();
+  if(!sess.writeType){alert('请先选择作文类型');if(btn){btn.textContent='✍️ 开始';btn.disabled=false}return}
+  const diff=state.difficulty||'';
+  let msg='';
+  if(sess.writeAction==='命题')msg='你是北京市英语作文命题专家。请为'+sess.writeType+'生成作文题目。难度：'+diff+'\n输出：作文题目+写作提示+字数要求+评分标准+范文+常用表达。直接输出最终内容。';
+  else if(sess.writeAction==='模板')msg='你是北京市英语作文教学专家。请为'+sess.writeType+'生成作文模板。难度：'+diff+'\n输出：基础模板+高分模板+万能句型+高级替换表达+评分标准。直接输出最终内容。';
+  else if(sess.writeAction==='批改')msg='你是北京市英语作文阅卷专家。请批改以下'+sess.writeType+'作文。输出：总评分+逐句修改版+修改原因+高分范文+可积累表达。\n\n[在此粘贴学生作文]';
+  else msg='你是北京市英语写作教学专家。请讲解'+sess.writeType+'写作方法。难度：'+diff+'\n输出：文体特征+结构框架+常用句型+范文2篇+评分要点+常见错误。直接输出最终内容。';
+  document.getElementById('userInput').value=msg;sendMsg();
+  setTimeout(()=>{if(btn){btn.textContent='✍️ 开始';btn.disabled=false}},2000);
+}
+
+// ═══════════════════════════════════════
+// AGENT 8 — 智能词汇检测中心 (Vocabulary Assessment Center)
+// 闭环：上传词表 → AI解析建库 → 语境出题 → 三版试卷 → 错词分析
+// ═══════════════════════════════════════
+
+// ── Vendor 懒加载（自托管为主，CDN 三级兜底）──
+var VENDOR_LOADED={xlsx:false,mammoth:false};
+function loadScript(url){
+  return new Promise(function(res,rej){
+    var s=document.createElement('script');s.src=url;
+    s.onload=function(){res()};s.onerror=function(){rej(new Error('load fail: '+url))};
+    document.head.appendChild(s);
+  });
+}
+async function ensureVendor(kind){
+  if(kind==='xlsx'&&window.XLSX)return true;
+  if(kind==='mammoth'&&window.mammoth)return true;
+  if(kind==='pdf'&&(window.pdfjsLib||window['pdfjs-dist/build/pdf']))return true;
+  var spec={
+    xlsx:{test:function(){return window.XLSX},urls:['/lib/vendor/xlsx.full.min.js','https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js','https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js']},
+    mammoth:{test:function(){return window.mammoth},urls:['/lib/vendor/mammoth.browser.min.js','https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js','https://cdn.bootcdn.net/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js']},
+    pdf:{test:function(){return window.pdfjsLib||window['pdfjs-dist/build/pdf']},urls:['/lib/vendor/pdf.min.js','https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js','https://cdn.bootcdn.net/ajax/libs/pdf.js/3.11.174/pdf.min.js']}
+  }[kind];
+  if(!spec)return false;
+  for(var i=0;i<spec.urls.length;i++){
+    try{
+      await loadScript(spec.urls[i]);
+      if(spec.test())return true;
+    }catch(e){}
+  }
+  return false;
+}
+
+// ── 解析：词条规整 ──
+function normalizeWord(raw){
+  if(!raw)return null;
+  var word=(raw.word||'').toString().trim().replace(/^\s*\d+\s*[.、)）]\s*/,'').replace(/[*✱★]/g,'').trim();
+  word=word.replace(/\s+\(?(n\.?|v\.?|vt\.?|vi\.?|adj\.?|adv\.?|prep\.?|conj\.?|pron\.?|num\.?|art\.?|int\.?|det\.?|phr\.?|abbr\.?|modal\.?)\)?\s*$/i,'').trim();
+  if(!/^[a-zA-Z][a-zA-Z'’ \-]{0,40}$/.test(word))return null;
+  var meaning=(raw.meaning||'').toString().trim().replace(/[*✱★]/g,'').replace(/^[\s;；,，、]+/,'').trim();
+  return {
+    id:'v_'+Date.now()+'_'+Math.floor(Math.random()*1e6),
+    word:word,meaning:meaning,pos:(raw.pos||'').toString().trim(),
+    phonetic:(raw.phonetic||'').toString().trim(),example:(raw.example||'').toString().trim(),
+    stage:raw.stage||'',grade:raw.grade||'',unit:(raw.unit||'').toString().trim(),
+    source:raw.source||'',sourceType:raw.sourceType||'upload',
+    mastery:0,wrongCount:0,wrongReason:'',difficulty:1,lastReview:0,
+    nextReview:0,ease:2.5,interval:0,createdAt:Date.now()
+  };
+}
+function parseFreeCell(text){
+  var t=(text||'').toString().trim().replace(/^\s*\d+\s*[.、)）:：]\s*/,'');
+  var out={word:'',phonetic:'',pos:'',meaning:''};
+  var ph=t.match(/(\/[^\/]+\/|\[[^\]]+\])/);if(ph){out.phonetic=ph[1];t=t.replace(ph[1],' ');}
+  var wm=t.match(/^\s*([a-zA-Z][a-zA-Z'’ \-]{0,40})/);
+  if(wm){
+    var wraw=wm[1].trim();
+    // 词性可能被吞入单词尾部（如 "abandon v"），剥离之
+    var pm2=wraw.match(/^(.+?)\s+\(?(n|v|vt|vi|adj|adv|prep|conj|pron|num|art|int|det|phr|abbr|modal)\.?$/i);
+    if(pm2){out.word=pm2[1].trim();out.pos=pm2[2];}else{out.word=wraw;}
+    t=t.slice(wm[0].length);
+  }
+  var pm=t.match(/^\s*[\(（]?\s*(n|v|vt|vi|adj|adv|prep|conj|pron|num|art|int|det|phr|abbr|modal)\.?\s*[\)）]?/i);
+  if(pm){out.pos=out.pos||pm[1];t=t.slice(pm[0].length);}
+  var rest=t.replace(/^[\s,，;；:：、.。]+/,'').trim();
+  if(/[一-龥]/.test(rest))out.meaning=rest;
+  return out;
+}
+function classifyColumn(values){
+  var sample=values.filter(function(v){return String(v).trim()!==''}).slice(0,30);
+  if(!sample.length)return 'junk';
+  var scores={word:0,meaning:0,pos:0,phonetic:0,example:0,unit:0};
+  sample.forEach(function(v){
+    v=String(v).trim();
+    if(/^[a-zA-Z][a-zA-Z'’ \-]{0,40}$/.test(v))scores.word++;
+    if(/[一-龥]/.test(v))scores.meaning++;
+    if(/^(n|v|vt|vi|adj|adv|prep|conj|pron|num|art|int|det|phr|abbr|modal)(\.|、)?$/i.test(v)||/^(名词|动词|形容词|副词|介词|连词|代词|冠词|数词|感叹词|短语)$/.test(v))scores.pos++;
+    if(/[\/\[].{2,}[\/\]]/.test(v)||/[əæɑɔɪʊʌɛðθŋˈː]/.test(v))scores.phonetic++;
+    if(/^[a-zA-Z].*\s.*\s/.test(v)&&v.length>25)scores.example++;
+    if(/u(nit)?\s*\d+|第?\s*\d+\s*单元|^L\d+|lesson\s*\d+/i.test(v))scores.unit++;
+  });
+  var best='junk',max=0;Object.keys(scores).forEach(function(k){if(scores[k]>max){max=scores[k];best=k}});
+  if(max<Math.ceil(sample.length*0.4))return 'junk';
+  return best;
+}
+function gridToVocab(rows,meta){
+  var report={totalRows:0,recognized:0,missingMeaning:0,duplicate:0,skippedSamples:[]};
+  if(!rows||!rows.length)return {items:[],report:report};
+  var HEADER_KEYS={word:/单词|word|英文|词汇|english|词/i,meaning:/释义|中文|意思|meaning|chinese|translation|解释/i,pos:/词性|pos|part\s*of\s*speech|词类/i,phonetic:/音标|phonetic|pronunciation|发音/i,example:/例句|example|sentence|造句/i,unit:/unit|单元|课|lesson/i};
+  var headerIdx=-1,colMap={};
+  for(var r=0;r<Math.min(6,rows.length);r++){
+    var score=0,cm={};
+    rows[r].forEach(function(cell,ci){var c=String(cell).trim();if(!c)return;
+      Object.keys(HEADER_KEYS).forEach(function(k){if(HEADER_KEYS[k].test(c)&&cm[k]===undefined){cm[k]=ci;score++;}});});
+    if(score>=2){headerIdx=r;colMap=cm;break;}
+  }
+  var dataRows;
+  if(headerIdx>=0){dataRows=rows.slice(headerIdx+1);}
+  else{
+    var maxCols=0;rows.forEach(function(rw){if(rw.length>maxCols)maxCols=rw.length;});
+    for(var c=0;c<maxCols;c++){var vals=rows.map(function(rw){return rw[c]||''});var kind=classifyColumn(vals);if(kind!=='junk'&&colMap[kind]===undefined)colMap[kind]=c;}
+    dataRows=rows;
+  }
+  report.totalRows=dataRows.length;
+  var items=[],seen={},hasStructure=(colMap.word!==undefined&&colMap.meaning!==undefined);
+  dataRows.forEach(function(rw){
+    var raw={};
+    if(hasStructure){
+      raw.word=rw[colMap.word];raw.meaning=rw[colMap.meaning];
+      if(colMap.pos!==undefined)raw.pos=rw[colMap.pos];
+      if(colMap.phonetic!==undefined)raw.phonetic=rw[colMap.phonetic];
+      if(colMap.example!==undefined)raw.example=rw[colMap.example];
+      if(colMap.unit!==undefined)raw.unit=rw[colMap.unit];
+    }else{
+      var cell='';for(var i=0;i<rw.length;i++){if(String(rw[i]).trim()&&/[a-zA-Z]/.test(rw[i])){cell=rw[i];break;}}
+      if(!cell&&rw.length)cell=rw[0];
+      raw=parseFreeCell(cell);
+    }
+    raw.stage=meta.stage;raw.grade=meta.grade;raw.source=meta.source;raw.sourceType='upload';
+    if(!raw.unit)raw.unit=meta.unit;
+    var item=normalizeWord(raw);
+    if(!item){var joined=rw.map(function(c){return String(c).trim()}).filter(Boolean).join(' ');if(joined&&report.skippedSamples.length<5)report.skippedSamples.push(joined.slice(0,40));return;}
+    if(!item.meaning)report.missingMeaning++;
+    var key=item.word.toLowerCase();if(seen[key]){report.duplicate++;return;}
+    seen[key]=true;items.push(item);report.recognized++;
+  });
+  return {items:items,report:report};
+}
+function parseFreeText(text,meta){
+  var items=[],seen={},report={totalRows:0,recognized:0,missingMeaning:0,duplicate:0,skippedSamples:[]};
+  var lines=(text||'').toString().split(/\r?\n/);report.totalRows=lines.length;
+  lines.forEach(function(line){
+    line=line.trim();if(!line)return;
+    var raw=parseFreeCell(line);raw.stage=meta.stage;raw.grade=meta.grade;raw.source=meta.source;raw.unit=meta.unit;raw.sourceType='upload';
+    var item=normalizeWord(raw);
+    if(!item||!item.meaning){if(report.skippedSamples.length<5)report.skippedSamples.push(line.slice(0,40));return;}
+    var key=item.word.toLowerCase();if(seen[key]){report.duplicate++;return;}
+    seen[key]=true;items.push(item);report.recognized++;
+  });
+  return {items:items,report:report};
+}
+function inferMeta(fileName,items){
+  var fn=fileName||'';var s=fn+' '+items.slice(0,20).map(function(i){return i.unit||''}).join(' ');
+  var meta={stage:'',grade:'',source:'',unit:''};
+  if(/人教|PEP/i.test(s))meta.source='人教PEP';else if(/北京版/i.test(s))meta.source='北京版';
+  else if(/外研/i.test(s))meta.source='外研版';else if(/北师大/i.test(s))meta.source='北师大版';
+  if(/小学|[三四五六]年级/i.test(fn))meta.stage='小学';
+  else if(/初中|初一|初二|初三|[七八九]年级/i.test(fn))meta.stage='初中';
+  else if(/高中|高一|高二|高三|必修|选择性/i.test(fn))meta.stage='高中';
+  var gm=fn.match(/([三四五六七八九])年级/);if(gm)meta.grade=gm[1]+'年级';
+  var units={};items.forEach(function(i){if(i.unit)units[i.unit]=1;});
+  var ul=Object.keys(units);
+  if(ul.length===1)meta.unit=ul[0];
+  else if(ul.length>1){var nums=ul.map(function(u){var m=u.match(/\d+/);return m?+m[0]:null}).filter(function(x){return x!=null}).sort(function(a,b){return a-b});if(nums.length)meta.unit='U'+nums[0]+'-U'+nums[nums.length-1];}
+  return meta;
+}
+// ── AI 兜底解析：本地规则匹配不出词表时，把原文交给 AI 结构化 ──
+// 极简 SSE 收集器（不污染对话区）
+async function aiChatOnce(agent,prompt){
+  var token=localStorage.getItem('tutor_token');
+  var resp=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({messages:[{role:'user',content:prompt}],agent:agent})});
+  if(!resp.ok){var e=await resp.json().catch(function(){return{error:'HTTP '+resp.status}});throw new Error(e.error||'HTTP '+resp.status)}
+  var reader=resp.body.getReader(),dec=new TextDecoder(),buf='',full='';
+  while(true){
+    var rd=await reader.read();if(rd.done)break;
+    buf+=dec.decode(rd.value,{stream:true});var ls=buf.split('\n');buf=ls.pop()||'';
+    for(var i=0;i<ls.length;i++){
+      var l=ls[i];if(!l.startsWith('data: '))continue;
+      var p=null;try{p=JSON.parse(l.slice(6))}catch(e){continue}
+      if(p.type==='text')full+=p.text;
+      else if(p.type==='error')throw new Error(p.error||'生成失败');
+    }
+  }
+  if(!full.trim())throw new Error('模型未返回内容');
+  return full;
+}
+async function aiExtractVocabItems(rawText,meta){
+  var t=(rawText||'').slice(0,12000);
+  if(!t.trim())return null;
+  var prompt='你是词表结构化引擎。下面是从文件提取的英语词汇表原始文本，排版可能错乱、列可能错位。请尽力还原为词汇数组：严格只输出一个 JSON 数组（不要 markdown 围栏、不要任何解释），每项形如 {"word":"单词","phonetic":"音标(可空字符串)","pos":"词性(可空)","meaning":"中文释义(可空)","unit":"单元(可空)"}。丢弃非词汇行（标题/页码/说明）。最多提取 500 词。\n\n原始文本：\n'+t;
+  var full=await aiChatOnce('vocabulary',prompt);
+  var m=full.match(/\[[\s\S]*\]/);
+  if(!m)return null;
+  var arr;try{arr=JSON.parse(m[0])}catch(e){return null}
+  if(!Array.isArray(arr))return null;
+  var out=[],seen={};
+  arr.forEach(function(o){
+    if(!o||!o.word)return;
+    var n=normalizeWord({word:o.word,phonetic:o.phonetic,pos:o.pos,meaning:o.meaning,unit:o.unit,stage:(meta&&meta.stage)||'',source:(meta&&meta.source)||'',sourceType:'upload'});
+    if(n){var k=n.word.toLowerCase();if(!seen[k]){seen[k]=1;out.push(n)}}
+  });
+  return out.length?out:null;
+}
+async function parsePdf(file){
+  var loaded=await ensureVendor('pdf');
+  var lib=window.pdfjsLib||window['pdfjs-dist/build/pdf'];
+  if(!loaded||!lib)return {ok:false,error:'PDF 解析组件加载失败，请检查网络后重试'};
+  try{
+    // worker 用 Blob URL 实例化，规避路径/同源/MIME 问题（最可靠）
+    if(!lib.GlobalWorkerOptions.workerSrc){
+      try{
+        var wt=await (await fetch('/lib/vendor/pdf.worker.min.js')).text();
+        lib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([wt],{type:'application/javascript'}));
+      }catch(e){lib.GlobalWorkerOptions.workerSrc='/lib/vendor/pdf.worker.min.js';}
+    }
+    var buf=await file.arrayBuffer();
+    var pdf=await lib.getDocument({data:buf,cMapUrl:'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',cMapPacked:true,useSystemFonts:true}).promise;
+    var lines=[];
+    var maxPages=Math.min(pdf.numPages,50);
+    for(var p=1;p<=maxPages;p++){
+      var page=await pdf.getPage(p);
+      var tc=await page.getTextContent();
+      var rows={};
+      tc.items.forEach(function(it){
+        var y=Math.round(it.transform[5]/3)*3;
+        if(!rows[y])rows[y]=[];
+        rows[y].push({x:it.transform[4],s:it.str});
+      });
+      Object.keys(rows).map(Number).sort(function(a,b){return b-a}).forEach(function(y){
+        var line=rows[y].sort(function(a,b){return a.x-b.x}).map(function(o){return o.s}).join(' ');
+        if(line.trim())lines.push(line);
+      });
+    }
+    var text=lines.join('\n');
+    if(!text.trim())return {ok:false,error:'该 PDF 没有可提取的文字层（很可能是扫描件/图片型 PDF），请改用粘贴文本'};
+    return {ok:true,text:text};
+  }catch(e){
+    return {ok:false,error:'PDF 解析出错：'+((e&&e.message)||String(e))};
+  }
+}
+async function parseVocabFile(file,onProg){
+  var name=file.name||'';var ext=(name.split('.').pop()||'').toLowerCase();
+  var meta=inferMeta(name,[]);
+  var empty={totalRows:0,recognized:0,missingMeaning:0,duplicate:0,skippedSamples:[]};
+  if(/^image\//.test(file.type)||['png','jpg','jpeg','gif','bmp','webp'].indexOf(ext)>=0){
+    return {items:[],meta:meta,report:empty,needPaste:true,reason:'图片暂不支持自动解析，请粘贴词表文本'};
+  }
+  if(ext==='pdf'){
+    var pres=await parsePdf(file);
+    if(pres.ok&&pres.text&&pres.text.trim()){
+      var pr=parseFreeText(pres.text,meta);
+      if(pr.items.length)return {items:pr.items,meta:inferMeta(name,pr.items),report:pr.report,needPaste:false};
+      // 🐛 AI 兜底：PDF 能提取到文字但排版错乱导致本地规则匹配失败 → 交给 AI 结构化提取（不再直接让用户粘贴）
+      if(typeof onProg==='function')onProg('🤖 文字已提取，AI 正在识别词表（约10-30秒）…');
+      var ai=null;try{ai=await aiExtractVocabItems(pres.text,meta)}catch(e){}
+      if(ai&&ai.length){
+        return {items:ai,meta:inferMeta(name,ai),report:{totalRows:ai.length,recognized:ai.length,missingMeaning:ai.filter(function(i){return !i.meaning}).length,duplicate:0,skippedSamples:[]},needPaste:false,aiParsed:true};
+      }
+      return {items:[],meta:meta,report:empty,needPaste:true,reason:'PDF 已提取到文字，但未能识别出词表（可能为扫描件或无词表结构），请粘贴文本。提取预览：'+pres.text.replace(/\n/g,' / ').slice(0,80)};
+    }
+    return {items:[],meta:meta,report:empty,needPaste:true,reason:pres.error||'PDF 解析失败，请粘贴文本'};
+  }
+  try{
+    if(ext==='xlsx'||ext==='xls'||ext==='csv'){
+      if(!(await ensureVendor('xlsx')))return {items:[],meta:meta,report:empty,needPaste:true,reason:'Excel 解析组件加载失败，请检查网络或改用粘贴'};
+      var buf=await file.arrayBuffer(),wb;
+      if(ext==='csv'){var txt;try{txt=new TextDecoder('utf-8',{fatal:true}).decode(buf);}catch(e){txt=new TextDecoder('gbk').decode(buf);}wb=XLSX.read(txt,{type:'string'});}
+      else{wb=XLSX.read(buf,{type:'array'});}
+      var all=[],agg={totalRows:0,recognized:0,missingMeaning:0,duplicate:0,skippedSamples:[]};
+      wb.SheetNames.forEach(function(sn){
+        var rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:''});
+        var sm=Object.assign({},meta);var um=sn.match(/u(nit)?\s*\d+|必修.+/i);if(um&&!sm.unit)sm.unit=um[0];
+        var r=gridToVocab(rows,sm);all=all.concat(r.items);
+        agg.totalRows+=r.report.totalRows;agg.recognized+=r.report.recognized;agg.missingMeaning+=r.report.missingMeaning;agg.duplicate+=r.report.duplicate;
+        agg.skippedSamples=agg.skippedSamples.concat(r.report.skippedSamples).slice(0,5);
+      });
+      var seen={},dedup=[];all.forEach(function(it){var k=it.word.toLowerCase();if(!seen[k]){seen[k]=1;dedup.push(it);}});
+      return {items:dedup,meta:inferMeta(name,dedup),report:agg,needPaste:false};
+    }
+    if(ext==='docx'){
+      if(!(await ensureVendor('mammoth')))return {items:[],meta:meta,report:empty,needPaste:true,reason:'Word 解析组件加载失败，请检查网络或改用粘贴'};
+      var ab=await file.arrayBuffer();
+      var html=(await mammoth.convertToHtml({arrayBuffer:ab})).value;
+      var doc=new DOMParser().parseFromString(html,'text/html');var table=doc.querySelector('table');
+      if(table){
+        var rows=[];table.querySelectorAll('tr').forEach(function(tr){var cells=[];tr.querySelectorAll('td,th').forEach(function(td){cells.push(td.textContent.trim())});if(cells.length)rows.push(cells);});
+        var gr=gridToVocab(rows,meta);return {items:gr.items,meta:inferMeta(name,gr.items),report:gr.report,needPaste:false};
+      }
+      var raw=(await mammoth.extractRawText({arrayBuffer:ab})).value;
+      var fr=parseFreeText(raw,meta);return {items:fr.items,meta:inferMeta(name,fr.items),report:fr.report,needPaste:false};
+    }
+    if(ext==='txt'){
+      var t=await file.text();var tr=parseFreeText(t,meta);
+      return {items:tr.items,meta:inferMeta(name,tr.items),report:tr.report,needPaste:false};
+    }
+    return {items:[],meta:meta,report:empty,needPaste:true,reason:'暂不支持 .'+ext+' 格式，请粘贴文本'};
+  }catch(e){
+    return {items:[],meta:meta,report:empty,needPaste:true,reason:'解析出错：'+(e.message||e)+'，请粘贴文本'};
+  }
+}
+
+// ── 词库数据层 ──
+var VocabStore={
+  _data:null,
+  load:function(){
+    if(this._data)return this._data;
+    try{var raw=localStorage.getItem('melix_vocab_v1');this._data=raw?JSON.parse(raw):{version:1,banks:[]};}
+    catch(e){this._data={version:1,banks:[]};}
+    if(!this._data.banks)this._data.banks=[];
+    return this._data;
+  },
+  save:function(){
+    try{localStorage.setItem('melix_vocab_v1',JSON.stringify(this._data));}
+    catch(e){alert('⚠️ 本地存储空间不足，词库未能保存。请删除旧词库/旧会话后重试。');return false;}
+    vocabCloudSync();return true;
+  },
+  raw:function(){return this._data;},
+  listBanks:function(){this.load();return this._data.banks.map(function(b){return {id:b.id,name:b.name,count:(b.items||[]).length,stage:b.stage,source:b.source,unit:b.unit,createdAt:b.createdAt};});},
+  getBank:function(id){this.load();return this._data.banks.find(function(b){return b.id===id})||null;},
+  stats:function(){
+    this.load();var words=0,wrong=0;
+    this._data.banks.forEach(function(b){(b.items||[]).forEach(function(it){words++;if(it.wrongCount>0)wrong++;});});
+    var bytes=0;try{bytes=(localStorage.getItem('melix_vocab_v1')||'').length;}catch(e){}
+    return {bankCount:this._data.banks.length,wordCount:words,wrongCount:wrong,approxBytes:bytes};
+  },
+  addBank:function(meta,items){
+    this.load();var st=this.stats();
+    if(items.length>3000){alert('单词库最多 3000 词，当前 '+items.length+' 词，请拆分后上传。');return null;}
+    if(this._data.banks.length>=20){alert('词库数量已达上限（20 个），请先删除旧词库。');return null;}
+    if(st.wordCount+items.length>6000){alert('总词库容量已达上限（6000 词），请先删除旧词库。');return null;}
+    var nm=[meta.source,meta.grade,meta.unit].filter(Boolean).join(' ')||'未命名词库';
+    var bank={id:'bank_'+Date.now(),name:nm,stage:meta.stage||'',grade:meta.grade||'',source:meta.source||'',unit:meta.unit||'',sourceType:'upload',createdAt:Date.now(),items:items};
+    this._data.banks.push(bank);this.save();return bank;
+  },
+  deleteBank:function(id){this.load();this._data.banks=this._data.banks.filter(function(b){return b.id!==id});this.save();},
+  findItemByWord:function(word){
+    this.load();var w=(word||'').toLowerCase().trim();
+    for(var i=0;i<this._data.banks.length;i++){var b=this._data.banks[i];for(var j=0;j<(b.items||[]).length;j++){if(b.items[j].word.toLowerCase()===w)return b.items[j];}}
+    return null;
+  },
+  recordWrong:function(word,info){
+    this.load();var item=this.findItemByWord(word);
+    if(!item){
+      var it=normalizeWord({word:word,meaning:info.meaning||'',source:'错词录入',sourceType:'builtin',stage:info.stage||''});
+      if(!it){alert('单词格式不正确');return;}
+      if(!this._data.banks.length)this._data.banks.push({id:'bank_'+Date.now(),name:'错词本',stage:'',grade:'',source:'',unit:'',sourceType:'builtin',createdAt:Date.now(),items:[]});
+      this._data.banks[0].items.push(it);item=it;
+    }
+    item.wrongCount=(item.wrongCount||0)+(info.count||1);
+    if(info.reason)item.wrongReason=info.reason;
+    item.lastReview=Date.now();this.save();
+  },
+  clearWrong:function(word){var it=this.findItemByWord(word);if(it){it.wrongCount=0;it.wrongReason='';this.save();}},
+  wrongList:function(){
+    this.load();var arr=[];
+    this._data.banks.forEach(function(b){(b.items||[]).forEach(function(it){if(it.wrongCount>0)arr.push(it);});});
+    arr.sort(function(a,b){return b.wrongCount-a.wrongCount});return arr;
+  }
+};
+var _vocabSyncTimer=null;
+// 🐛 修复：词库与会话云备份合并为一次「读-改-写」，避免两个定时器互相覆盖丢数据
+var _cloudSyncTimer=null;
+// 🐛 手机端会话（M.stores）此前从不上云：iOS 满 7 天清 localStorage = 历史永久丢失。
+//   现按当前端备份对应 store：手机端备份 M.stores → cur.mstores，桌面端备份 state.sessions → cur.sessions。
+function _liteStore(store){
+  var lite={};
+  for(var ag in store){
+    var s=store[ag];
+    lite[ag]={activeConvId:s.activeConvId,conversations:(s.conversations||[]).map(function(c){
+      return{id:c.id,agent:c.agent,title:c.title,fav:c.fav,createdAt:c.createdAt,messages:(c.messages||[]).slice(-20)};
+    })};
+  }
+  return lite;
+}
+function _shrinkLite(lite,n){
+  for(var ag in lite){(lite[ag].conversations||[]).forEach(function(c){c.messages=(c.messages||[]).slice(-n)})}
+}
+function cloudSync(){
+  clearTimeout(_cloudSyncTimer);
+  _cloudSyncTimer=setTimeout(function(){
+    var token=localStorage.getItem('tutor_token');if(!token)return;
+    var isMobile=window.innerWidth<=767&&window.M&&M.stores&&Object.keys(M.stores).length>0;
+    fetch('/api/user/data',{headers:{'Authorization':'Bearer '+token}}).then(function(r){return r.json()}).then(function(cur){
+      cur=cur||{};
+      if(isMobile){cur.mstores=_liteStore(M.stores)}
+      else{cur.sessions=_liteStore(state.sessions)}
+      // 词库
+      cur.vocab=VocabStore.raw();
+      // 🐛 Worker 限制 1MB，超限 413 会让备份静默失败：逐级缩小消息窗口保住备份可用性
+      for(var i=0;i<4;i++){
+        if(JSON.stringify(cur).length<900000)break;
+        if(cur.sessions)_shrinkLite(cur.sessions,[8,3,1][i]||1);
+        if(cur.mstores)_shrinkLite(cur.mstores,[8,3,1][i]||1);
+      }
+      return fetch('/api/user/data',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(cur)});
+    }).then(function(){vocabSetCloudStatus('ok')}).catch(function(){vocabSetCloudStatus('fail')});
+  },5000);
+}
+function vocabCloudSync(){cloudSync()}
+function vocabCloudRestore(){
+  var token=localStorage.getItem('tutor_token');if(!token){alert('请先登录后再恢复云端备份');return;}
+  fetch('/api/user/data',{headers:{'Authorization':'Bearer '+token}}).then(function(r){return r.json()}).then(function(cur){
+    if(cur&&cur.vocab&&cur.vocab.banks&&cur.vocab.banks.length){
+      VocabStore._data=cur.vocab;if(!VocabStore._data.banks)VocabStore._data.banks=[];
+      try{localStorage.setItem('melix_vocab_v1',JSON.stringify(VocabStore._data));}catch(e){}
+      alert('✅ 已从云端恢复 '+VocabStore._data.banks.length+' 个词库');renderVocabTab('bank');
+    }else{alert('云端暂无词库备份');}
+  }).catch(function(){alert('恢复失败，请检查网络')});
+}
+function vocabSetCloudStatus(s){var el=document.getElementById('vocabCloudStatus');if(el)el.textContent=s==='ok'?' · ☁️ 已云端备份':' · ⚠️ 云备份失败';}
+
+// ═══════ SESSION CLOUD SYNC (P3: 会话云备份已合并进 cloudSync，见 vocabCloudSync 上方) ═══════
+function sessionCloudSync(){cloudSync()}
+function sessionCloudRestore(){
+  var token=localStorage.getItem('tutor_token');if(!token){alert('请先登录后再恢复');return}
+  if(!confirm('从云端恢复会话将覆盖本地数据，确定？'))return;
+  fetch('/api/user/data',{headers:{'Authorization':'Bearer '+token}}).then(function(r){return r.json()}).then(function(cur){
+    var got=false;
+    // 桌面端会话
+    if(cur&&cur.sessions){
+      for(var ag in cur.sessions){state.sessions[ag]=cur.sessions[ag]}
+      got=true;
+    }
+    // 🐛 手机端会话此前无恢复路径：现同步写回 M.stores + localStorage
+    if(cur&&cur.mstores){
+      for(var ag2 in cur.mstores){
+        M.stores[ag2]=cur.mstores[ag2];
+        try{localStorage.setItem('melix_'+ag2,JSON.stringify(M.stores[ag2]))}catch(e){}
+      }
+      got=true;
+    }
+    if(got){
+      saveAll();renderConvList();renderMsgs();
+      if(window.innerWidth<=767&&window.M){M._loadStores();if(M._agent)M._renderChat();}
+      alert('✅ 已从云端恢复会话数据');
+    }else{alert('云端暂无会话备份')}
+  }).catch(function(){alert('恢复失败，请检查网络')});
+}
+
+// ── 出题引擎 ──
+function sampleTargets(bank,count){
+  var items=(bank&&bank.items)||[];
+  var targetCount=Math.min(items.length,Math.round(count*0.65));
+  var pool=items.slice().sort(function(a,b){return (b.wrongCount-a.wrongCount)||(a.mastery-b.mastery)||(Math.random()-0.5);});
+  var targets=pool.slice(0,targetCount);
+  return {targets:targets,extCount:Math.max(0,count-targets.length)};
+}
+function chunkTargets(targets,batchCount){
+  var chunks=[],n=targets.length,base=Math.floor(n/batchCount),rem=n%batchCount,idx=0;
+  for(var i=0;i<batchCount;i++){var sz=base+(i<rem?1:0);chunks.push(targets.slice(idx,idx+sz));idx+=sz;}
+  return chunks.filter(function(c){return c.length>0});
+}
+function buildVocabPrompt(p){
+  var stageDesc={'小学':'小学（A1-A2：基础词义与简单语境）','初中':'初中（A2-B1：词义辨析、固定搭配、完形语境）','高中':'高中（B1-B2：熟词生义、一词多义、长难句语境）'}[p.stage]||p.stage||'初中';
+  function fmt(it,i){return (i+1)+'. '+it.word+(it.phonetic?' '+it.phonetic:'')+(it.pos?' '+it.pos:'')+' '+(it.meaning||'')+(it.unit?' ['+it.unit+']':'');}
+  var L=[];
+  L.push('你是北京市K12英语词汇命题专家。基于【上传词库】生成词汇语境单选题测试。');
+  L.push('');L.push('■ 参数');
+  L.push('学段：'+stageDesc);L.push('难度档位：'+p.level);
+  L.push('总题量：'+p.count+' 题。本次为第 '+p.batchNo+'/'+p.batchTotal+' 批，生成第 '+p.startNo+'-'+p.endNo+' 题。');
+  if(p.isFirst){
+    L.push('全卷目标词表（全卷统一参照，必须全部考到、每词恰好一题）：');
+    p.fullTargets.forEach(function(it,i){L.push(fmt(it,i));});
+  }else{
+    L.push('本批新增目标词（必须全部考到、每词一题）：');
+    p.batchItems.forEach(function(it,i){L.push(fmt(it,i));});
+    L.push('（命题规则与全卷完整词表见第 1 批消息，严格沿用，不得重复已考词。）');
+  }
+  L.push('扩展词：本批另出 '+p.batchExtCount+' 题，考查北京K12'+(p.stage||'')+'体系词汇（可参考知识库 vocabulary 中同学段词条），不得与任一目标词重复。');
+  L.push('');L.push('■ 命题铁律（违反即废题）');
+  L.push('1. 语境化：每题一个完整英文语境句，挖空处必须填目标词（或其正确形式）。严禁 "What does X mean?"/"The meaning of X is" 式直译题、严禁单纯中文释义选择题。');
+  L.push('2. 挖空精准：空格答案唯一，句意不得歧义或多解；针对目标词核心义项或该学段常考义项。');
+  L.push('3. 干扰项：3 个干扰项必须与正确答案词性一致、语义相关（近义/反义/形近/同主题易混），长度相近；正确项在 A/B/C/D 中随机分布，整套不得出现位置规律。');
+  L.push('4. 语境句用词不超纲（扩展词考查点除外），句长匹配学段。');
+  L.push('5. 题号连续：本批从第 '+p.startNo+' 题编到第 '+p.endNo+' 题。');
+  L.push('');L.push('■ 输出格式（严格照排，用于 Word 导出与机器解析）');
+  L.push('【重要】三个标记【试卷版】【答案版】【教师版】缺一不可，且每个标记下必须有完整对应内容：【试卷版】完整列出本批所有题目的题干与 A-D 选项（此处不得出现答案）；【答案版】仅列答案字母；【教师版】逐题解析。解析务必精炼（每题不超过 30 字），避免冗长导致截断。');
+  L.push('【试卷版】');L.push('一、词汇语境单选（第'+p.startNo+'-'+p.endNo+'题）');
+  L.push(p.startNo+'. The firefighters had no choice but to ______ the burning building.');
+  L.push('   A. abandon   B. adapt   C. adopt   D. admit');
+  L.push('【答案版】');L.push(p.startNo+'-'+p.endNo+'：A C B D …（每10题一行，仅字母）');
+  L.push('【教师版】');L.push(p.startNo+'. 【答案】A 【考查词】abandon[U1] v.放弃 【解析】语境提示"别无选择离开大楼"；干扰项 adapt/adopt 为形近动词。');
+  L.push('## 考查词列表');L.push('| 题号 | 考查词 | 来源 | 词性 | 释义 |   ← 来源列填"上传"或"扩展"');
+  L.push('## 数据分析');L.push('- 高频易错词预测 / 薄弱义项提示 / 易混词对');
+  L.push('## 机器数据（供系统解析，置于 json 代码围栏内，勿增删字段）');
+  L.push('```json');
+  L.push('[{"no":'+p.startNo+',"stem":"语境句原文","options":["abandon","adapt","adopt","admit"],"answer":"A","target":"abandon","src":"upload","pos":"v.","meaning":"放弃"}]');
+  L.push('```');L.push('');
+  L.push('直接输出全部 '+p.count+' 题的完整内容（本批第 '+p.startNo+'-'+p.endNo+' 题必须一题不落），全文只允许【试卷版】【答案版】【教师版】和 json 数据四个部分；严禁中途省略、严禁任何追问（如「需要继续吗」）、建议、开场白或解释性语句。');
+  return L.join('\n');
+}
+// 词汇批处理专用：发送一条 user 消息并流式收完，返回完整助手文本。isLoading/按钮由调用方管。
+async function sendMsgCore(text,internal){
+  addMsg('user',text);
+  if(internal){const _ms=curMsgs();if(_ms.length)_ms[_ms.length-1].internal=true;}
+  const allMsgs=curMsgs();const apiMsgs=[];
+  for(let i=Math.max(0,allMsgs.length-11);i<allMsgs.length-1;i++){
+    if(!allMsgs[i].streaming)apiMsgs.push({role:allMsgs[i].role,content:allMsgs[i].content});
+  }
+  apiMsgs.push({role:'user',content:text});
+  addMsg('assistant','',true);
+  let full='';
+  const resp=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('tutor_token')||'')},body:JSON.stringify({messages:apiMsgs,agent:state.agent})});
+  if(!resp.ok){const err=await resp.json().catch(()=>({error:'HTTP '+resp.status}));finishStreaming();if(err.error==='请先登录'){localStorage.removeItem('tutor_token');window.location.href='/login.html';throw new Error('登录已过期，正在跳转登录页…')}throw new Error(err.error||'请求失败')}
+  const reader=resp.body.getReader();const decoder=new TextDecoder();let buf='';
+  startWaitTicker();
+  while(true){
+    const{done,value}=await reader.read();if(done)break;
+    buf+=decoder.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop()||'';
+    for(const line of lines){
+      if(!line.startsWith('data: '))continue;
+      let d=null;try{d=JSON.parse(line.slice(6))}catch(e){continue}
+      if(d.type==='text'){_gotText=true;stopWaitTicker();full+=d.text;addMsg('assistant',full,true)}
+      else if(d.type==='thinking'){_thinkingChars+=(d.text||'').length;if(!_gotText)renderWaitStatus()}
+      else if(d.type==='status'){_gotStatus=true;if(!_gotText)renderWaitStatus()}
+      else if(d.type==='error'){throw new Error(d.error||'生成失败')}
+    }
+  }
+  stopWaitTicker();
+  finishStreaming();
+  // 🐛 空回复：移除空气泡并抛错（调用方 alert 提示），不再静默
+  if(!full.trim()){
+    const _ms=curMsgs();
+    if(_ms.length&&_ms[_ms.length-1].role==='assistant'&&!_ms[_ms.length-1].content)_ms.pop();
+    renderMsgs();saveAll();
+    throw new Error('模型未返回内容（思考超时或被截断），请重试');
+  }
+  const conv=curConv();if(conv&&conv.messages.length>0)conv.title=convTitle(conv.messages);
+  renderConvList();saveAll();
+  return full;
+}
+function updateVocabProgress(i,n){
+  var el=document.getElementById('vocabProgress');if(el)el.style.display='block';
+  var bar=document.getElementById('vocabProgressBar');if(bar)bar.style.width=Math.round(i/n*100)+'%';
+  var lbl=document.getElementById('vocabProgressLbl');if(lbl)lbl.textContent='正在生成第 '+i+'/'+n+' 批…';
+}
+async function applyVocabGenerate(mode){
+  if(state.isLoading)return;
+  var cEl=document.getElementById('vocabCount');if(cEl)state.vocab.count=+cEl.value;
+  var lEl=document.getElementById('vocabLevel');if(lEl)state.vocab.level=lEl.value;
+  var sEl=document.getElementById('vocabStage');if(sEl&&sEl.value)state.vocab.stage=sEl.value;
+  saveAll();
+  var isReview=(mode==='review');
+  var bank=VocabStore.getBank(state.vocab.bankId);
+  var stage=state.vocab.stage||(bank&&bank.stage)||'';
+  var targets,r,count;
+  if(isReview){
+    targets=VocabStore.wrongList();
+    if(!targets.length){alert('错词本为空，请先录入错词');return;}
+    count=targets.length;r={targets:targets,extCount:0};
+  }else{
+    if(!bank){alert('请先上传词表或选择词库');return;}
+    count=state.vocab.count||20;r=sampleTargets(bank,count);
+    if(!r.targets.length){alert('词库为空');return;}
+  }
+  var batchTotal=Math.max(1,Math.ceil(count/20));
+  var batches=chunkTargets(r.targets,batchTotal);
+  var extLeft=r.extCount;
+  state.isLoading=true;
+  var btn=document.getElementById('vocabGenBtn');
+  state._vocabGenerating=true;state._vocabProgress='正在准备…';renderMsgs();
+  try{
+    var startNo=1;
+    for(var i=0;i<batches.length;i++){
+      var batchItems=batches[i];
+      var batchExt=(i<batches.length-1)?Math.round(extLeft/(batches.length-i)):extLeft;
+      extLeft-=batchExt;
+      var endNo=startNo+batchItems.length+batchExt-1;
+      state._vocabProgress='正在生成第 '+(i+1)+'/'+batches.length+' 批…';
+      if(btn)btn.textContent='⏳ 生成中 '+(i+1)+'/'+batches.length+' 批…';
+      updateVocabProgress(i+1,batches.length);
+      var prompt=buildVocabPrompt({batchNo:i+1,batchTotal:batches.length,batchItems:batchItems,isFirst:i===0,
+        fullTargets:r.targets,extCount:r.extCount,batchExtCount:batchExt,count:count,
+        level:isReview?'错词强化':(state.vocab.level||'基础'),stage:stage,startNo:startNo,endNo:endNo});
+      await sendMsgCore(prompt,true);
+      startNo=endNo+1;
+    }
+    tryImportQuizJSON();
+    var _cv=curConv();if(_cv)_cv.title='词汇检测 '+count+'题'+(isReview?'（复习卷）':'');
+    state.vocab.step=4;saveAll();renderVocabTab('gen');
+  }catch(e){
+    alert('生成中断：'+(e.message||e)+'。已生成的批次保留在对话区，可新建会话重试。');
+  }finally{
+    state._vocabGenerating=false;state._vocabProgress='';
+    state.isLoading=false;if(btn)btn.textContent='📚 生成检测试卷';
+    renderMsgs();renderConvList();
+  }
+}
+function extractQuizJSON(text){
+  var blocks=(text||'').match(/```json\s*([\s\S]*?)```/g);if(!blocks)return null;
+  var out=[];blocks.forEach(function(b){var body=b.replace(/```json\s*/,'').replace(/```/,'').trim();try{var arr=JSON.parse(body);if(Array.isArray(arr))out=out.concat(arr);}catch(e){}});
+  return out.length?out:null;
+}
+function tryImportQuizJSON(){
+  var all=[];curMsgs().forEach(function(m){if(m.role==='assistant'){var q=extractQuizJSON(m.content);if(q)all=all.concat(q);}});
+  if(!all.length)return;
+  state.vocab._lastQuiz=all;
+  var badge=document.getElementById('vocabQuizBadge');
+  if(badge){badge.style.display='inline-block';badge.textContent='✅ 本卷已结构化解析 '+all.length+' 题';}
+}
+
+// ── 向导 UI ──
+function vocabRecalcHeight(){
+  var el=document.getElementById('mpConfig');if(!el)return;
+  el.style.maxHeight='none';requestAnimationFrame(function(){el.style.maxHeight=el.scrollHeight+'px';});
+}
+function renderVocabWizard(){
+  var tab=state.vocab.tab||'gen';
+  function tb(t,lb){var on=tab===t;return '<button class="cfg-btn" style="background:'+(on?'var(--pri)':'#ECEAF6')+';color:'+(on?'#fff':'var(--pri-dark)')+'" onclick="renderVocabTab(\''+t+'\')">'+lb+'</button>';}
+  var h='<div class="cfg-title" style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span>📚 智能词汇检测中心</span><button class="cfg-btn" style="padding:7px 16px;font-size:.78rem;font-weight:600;box-shadow:0 2px 6px rgba(122,108,245,.35);transition:transform .15s,box-shadow .15s" onmouseover="this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.transform=\'none\'" onclick="vocabNewUpload()">📤 导入新词表</button></div>';
+  h+='<div class="cfg-row" style="border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:10px">'+tb('gen','① 生成试卷')+tb('bank','② 我的词库')+tb('wrong','③ 错词本')+'</div>';
+  h+='<div id="vocabTabBody">'+vocabTabBody(tab)+'</div>';
+  return h;
+}
+function vocabNewUpload(){
+  state.vocab.tab='gen';state.vocab.step=1;state.vocab.parsed=null;saveAll();
+  renderVocabTab('gen');
+}
+function renderVocabTab(tab){
+  state.vocab.tab=tab;saveAll();
+  var body=document.getElementById('vocabTabBody');if(body)body.innerHTML=vocabTabBody(tab);
+  vocabRecalcHeight();
+}
+function vocabTabBody(tab){if(tab==='bank')return vocabBankBody();if(tab==='wrong')return vocabWrongBody();return vocabGenBody();}
+function vocabPreviewTable(items){
+  if(!items.length)return '<div style="font-size:.75rem;color:var(--text2)">（无）</div>';
+  var h='<table class="md-table"><thead><tr><th>单词</th><th>音标</th><th>词性</th><th>释义</th><th>Unit</th></tr></thead><tbody>';
+  items.forEach(function(it){h+='<tr><td>'+it.word+'</td><td>'+(it.phonetic||'')+'</td><td>'+(it.pos||'')+'</td><td>'+(it.meaning||'<span style="color:#E57373">缺</span>')+'</td><td>'+(it.unit||'')+'</td></tr>';});
+  return h+'</tbody></table>';
+}
+function vocabGenBody(){
+  var step=state.vocab.step||1;
+  var h='<div style="font-size:.72rem;color:var(--text2);margin-bottom:8px">步骤 '+step+'/4 · '+['上传词表','解析预览','生成设置','完成'][step-1]+'</div>';
+  if(step===1){
+    h+='<div style="border:2px dashed var(--border);border-radius:var(--radius);padding:18px;text-align:center;cursor:pointer;background:var(--input-bg)" onclick="document.getElementById(\'vocabFile\').click()">';
+    h+='<div style="font-size:1.8rem">📤</div><div style="font-size:.82rem;font-weight:600">上传词汇表</div>';
+    h+='<div style="font-size:.7rem;color:var(--text2);margin-top:2px">支持 Excel(.xlsx/.xls) · CSV · Word(.docx) · TXT · PDF（排版乱时 AI 自动识别）<br>图片请用下方粘贴</div>';
+    h+='<input type="file" id="vocabFile" accept=".xlsx,.xls,.csv,.docx,.txt,.pdf" onchange="onVocabFile(event)" style="display:none"></div>';
+    h+='<div id="vocabParseMsg" style="margin-top:6px;font-size:.75rem;color:var(--text2)"></div>';
+    h+='<div style="margin-top:10px"><details><summary style="font-size:.75rem;cursor:pointer;color:var(--pri)">📋 粘贴词表文本（PDF/无法解析时用）</summary>';
+    h+='<textarea id="vocabPaste" class="cfg-sel" style="width:100%;min-height:80px;margin-top:6px;resize:vertical" placeholder="每行一个词，如：abandon /əˈbændən/ v. 放弃；抛弃"></textarea>';
+    h+='<button class="cfg-btn" style="margin-top:6px" onclick="onVocabPaste()">解析粘贴内容</button></details></div>';
+    var banks=VocabStore.listBanks();
+    if(banks.length){
+      h+='<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:8px"><div style="font-size:.72rem;color:var(--text2);margin-bottom:4px">或从已有词库选择：</div>';
+      h+='<select class="cfg-sel" id="vocabBankSel" style="width:100%"><option value="">选择词库…</option>'+banks.map(function(b){return '<option value="'+b.id+'"'+(state.vocab.bankId===b.id?' selected':'')+'>'+b.name+'（'+b.count+'词）</option>'}).join('')+'</select>';
+      h+='<button class="cfg-btn" style="margin-top:6px" onclick="vocabUseBank()">使用此词库 →</button></div>';
+    }
+  }else if(step===2){
+    var p=state.vocab.parsed||{items:[],meta:{},report:{}};var rp=p.report||{};
+    h+='<div style="background:var(--input-bg);border-radius:var(--radius-sm);padding:10px;font-size:.78rem;line-height:1.7">';
+    h+='<div>✅ 已识别 <b>'+(p.items?p.items.length:0)+'</b> 词 · 缺释义 '+(rp.missingMeaning||0)+' · 去重 '+(rp.duplicate||0)+'</div>';
+    if(rp.skippedSamples&&rp.skippedSamples.length)h+='<div style="color:var(--text2);font-size:.7rem">未识别样例：'+rp.skippedSamples.join(' | ')+'</div>';
+    h+='</div>';
+    h+='<div class="cfg-row" style="margin-top:8px">';
+    h+='<select class="cfg-sel" id="vocabMetaStage"><option value="">学段</option><option>小学</option><option>初中</option><option>高中</option></select>';
+    h+='<input class="cfg-sel" id="vocabMetaSource" placeholder="教材来源" style="width:120px">';
+    h+='<input class="cfg-sel" id="vocabMetaGrade" placeholder="年级" style="width:90px">';
+    h+='<input class="cfg-sel" id="vocabMetaUnit" placeholder="Unit" style="width:90px"></div>';
+    h+='<div style="max-height:38vh;overflow-y:auto;margin-top:6px">'+vocabPreviewTable(p.items?p.items.slice(0,20):[])+'</div>';
+    h+='<div class="cfg-row" style="margin-top:8px"><button class="cfg-btn" style="background:#ECEAF6;color:var(--pri-dark)" onclick="vocabGotoStep(1)">← 重新上传</button><button class="cfg-btn" onclick="applyVocabParseConfirm()">确认入库并继续 →</button></div>';
+  }else if(step===3){
+    var bank=VocabStore.getBank(state.vocab.bankId);
+    h+='<div style="background:var(--input-bg);border-radius:var(--radius-sm);padding:10px;font-size:.78rem">📚 当前词库：<b>'+(bank?bank.name:'未选择')+'</b>'+(bank?'（'+bank.items.length+' 词 · '+(bank.stage||'')+'）':'')+'</div>';
+    h+='<div class="cfg-row" style="margin-top:8px">';
+    h+='<select class="cfg-sel" id="vocabCount"><option value="20">20 题</option><option value="50">50 题</option><option value="100">100 题</option></select>';
+    h+='<select class="cfg-sel" id="vocabLevel"><option>基础</option><option>提高</option><option>中考模拟</option></select>';
+    h+='<select class="cfg-sel" id="vocabStage"><option value="">学段（默认随词库）</option><option>小学</option><option>初中</option><option>高中</option></select></div>';
+    h+='<div id="vocabProgress" style="display:none;margin-top:8px"><div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div id="vocabProgressBar" style="height:100%;background:var(--pri);width:0%"></div></div><div id="vocabProgressLbl" style="font-size:.7rem;color:var(--text2);margin-top:2px"></div></div>';
+    h+='<div class="cfg-row" style="margin-top:8px"><button class="cfg-btn" id="vocabGenBtn" onclick="applyVocabGenerate()">📚 生成检测试卷</button></div>';
+    h+='<div style="font-size:.68rem;color:var(--text2);margin-top:4px">60-70% 考上传词汇，30-40% 为北京K12扩展词；100 题将分 5 批生成。</div>';
+  }else if(step===4){
+    h+='<div style="background:#EDF5EE;border-radius:var(--radius-sm);padding:12px;font-size:.82rem">✅ 试卷已生成在下方对话区。<br>用右上角按钮导出：<b>试卷版</b>（学生用，无答案）/ <b>答案版</b> / <b>教师版</b>（含解析+考查词表+数据分析）。</div>';
+    h+='<div class="cfg-row" style="margin-top:8px"><button class="cfg-btn" style="background:#ECEAF6;color:var(--pri-dark)" onclick="vocabGotoStep(3)">再生成一份</button><button class="cfg-btn" onclick="renderVocabTab(\'wrong\')">查看错词本</button></div>';
+  }
+  return h;
+}
+function vocabGotoStep(s){state.vocab.step=s;saveAll();renderVocabTab('gen');}
+function _vocabFillStep2(res){
+  setTimeout(function(){
+    var st=document.getElementById('vocabMetaStage');if(st)st.value=(res.meta&&res.meta.stage)||'';
+    var so=document.getElementById('vocabMetaSource');if(so)so.value=(res.meta&&res.meta.source)||'';
+    var gr=document.getElementById('vocabMetaGrade');if(gr)gr.value=(res.meta&&res.meta.grade)||'';
+    var un=document.getElementById('vocabMetaUnit');if(un)un.value=(res.meta&&res.meta.unit)||'';
+    vocabRecalcHeight();
+  },60);
+}
+async function onVocabFile(evt){
+  var file=evt.target.files[0];if(!file)return;
+  var msg=document.getElementById('vocabParseMsg');
+  if(msg)msg.textContent='⏳ 正在解析 '+file.name+' …';
+  var res=await parseVocabFile(file,function(s){if(msg)msg.textContent=s});
+  if(res.needPaste){if(msg)msg.textContent='⚠️ '+(res.reason||'无法解析该文件');return;}
+  if(!res.items.length){if(msg)msg.textContent='⚠️ 未识别到有效词汇，请检查文件或改用粘贴。';return;}
+  state.vocab.parsed=res;state.vocab.stage=(res.meta&&res.meta.stage)||'';state.vocab.step=2;saveAll();
+  renderVocabTab('gen');_vocabFillStep2(res);
+}
+function onVocabPaste(){
+  var t=(document.getElementById('vocabPaste')||{}).value||'';
+  if(!t.trim()){alert('请粘贴词表文本');return;}
+  var r=parseFreeText(t,inferMeta('粘贴词表',[]));
+  if(!r.items.length){alert('未识别到有效词汇，请检查格式（每行：单词 音标 词性 释义）');return;}
+  var meta=inferMeta('粘贴词表',r.items);
+  state.vocab.parsed={items:r.items,meta:meta,report:r.report};state.vocab.stage=meta.stage||'';state.vocab.step=2;saveAll();
+  renderVocabTab('gen');_vocabFillStep2(state.vocab.parsed);
+}
+function _vocabFillStep3(){
+  setTimeout(function(){
+    var c=document.getElementById('vocabCount');if(c)c.value=String(state.vocab.count||20);
+    var lv=document.getElementById('vocabLevel');if(lv)lv.value=state.vocab.level||'基础';
+    var sg=document.getElementById('vocabStage');if(sg)sg.value=state.vocab.stage||'';
+    vocabRecalcHeight();
+  },60);
+}
+function applyVocabParseConfirm(){
+  var p=state.vocab.parsed;if(!p||!p.items||!p.items.length){alert('没有可入库的词汇');return;}
+  var meta={stage:(document.getElementById('vocabMetaStage')||{}).value||'',source:(document.getElementById('vocabMetaSource')||{}).value||'',grade:(document.getElementById('vocabMetaGrade')||{}).value||'',unit:(document.getElementById('vocabMetaUnit')||{}).value||''};
+  p.items.forEach(function(it){it.stage=meta.stage;it.source=meta.source;it.grade=meta.grade;if(!it.unit)it.unit=meta.unit;});
+  var bank=VocabStore.addBank(meta,p.items);if(!bank)return;
+  state.vocab.bankId=bank.id;state.vocab.stage=meta.stage||bank.stage;state.vocab.parsed=null;state.vocab.step=3;saveAll();
+  renderVocabTab('gen');_vocabFillStep3();
+}
+function vocabUseBank(){
+  var sel=document.getElementById('vocabBankSel');if(!sel||!sel.value){alert('请选择词库');return;}
+  var bank=VocabStore.getBank(sel.value);if(!bank){alert('词库不存在');return;}
+  state.vocab.bankId=bank.id;state.vocab.stage=bank.stage||'';state.vocab.step=3;saveAll();
+  renderVocabTab('gen');_vocabFillStep3();
+}
+function vocabBankBody(){
+  var banks=VocabStore.listBanks();var st=VocabStore.stats();
+  var h='<div style="font-size:.72rem;color:var(--text2);margin-bottom:8px">共 '+st.bankCount+' 个词库 · '+st.wordCount+' 词 · 错词 '+st.wrongCount+' · 占用 '+(st.approxBytes/1024).toFixed(0)+'KB<span id="vocabCloudStatus"></span></div>';
+  if(!banks.length){
+    h+='<div style="font-size:.8rem;color:var(--text2);padding:14px;text-align:center">暂无词库，请在「生成试卷」中上传词表。</div>';
+    h+='<div class="cfg-row"><button class="cfg-btn" style="background:#ECEAF6;color:var(--pri-dark)" onclick="vocabCloudRestore()">☁️ 从云端恢复</button></div>';
+    return h;
+  }
+  h+='<div style="max-height:42vh;overflow-y:auto">';
+  banks.forEach(function(b){
+    h+='<div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;margin-bottom:8px">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:.82rem;font-weight:600">'+b.name+'</div><div style="font-size:.68rem;color:var(--text2)">'+b.count+' 词</div></div>';
+    h+='<div style="font-size:.7rem;color:var(--text2);margin-top:2px">'+[b.stage,b.source,b.unit].filter(Boolean).join(' · ')+'</div>';
+    h+='<div class="cfg-row" style="margin-top:6px">';
+    h+='<button class="cfg-btn" style="padding:5px 12px;font-size:.72rem" onclick="vocabUseBankById(\''+b.id+'\')">出题</button>';
+    h+='<button class="cfg-btn" style="padding:5px 12px;font-size:.72rem;background:#ECEAF6;color:var(--pri-dark)" onclick="vocabOpenBank(\''+b.id+'\')">查看</button>';
+    h+='<button class="cfg-btn" style="padding:5px 12px;font-size:.72rem;background:#ECEAF6;color:var(--pri-dark)" onclick="vocabExportBank(\''+b.id+'\')">导出</button>';
+    h+='<button class="cfg-btn" style="padding:5px 12px;font-size:.72rem;background:#ECEAF6;color:#E57373" onclick="vocabDeleteBank(\''+b.id+'\')">删除</button></div>';
+    h+='<div id="vocabBankItems_'+b.id+'" style="display:none;margin-top:6px;max-height:28vh;overflow-y:auto"></div></div>';
+  });
+  h+='</div>';
+  h+='<div class="cfg-row" style="margin-top:6px"><button class="cfg-btn" style="background:#ECEAF6;color:var(--pri-dark)" onclick="vocabCloudRestore()">☁️ 从云端恢复</button></div>';
+  return h;
+}
+function vocabOpenBank(id){
+  var el=document.getElementById('vocabBankItems_'+id);if(!el)return;
+  if(el.style.display==='block'){el.style.display='none';vocabRecalcHeight();return;}
+  var bank=VocabStore.getBank(id);if(!bank)return;
+  el.innerHTML=vocabPreviewTable(bank.items.slice(0,50))+'<div style="font-size:.68rem;color:var(--text2)">显示前 50 词</div>';
+  el.style.display='block';vocabRecalcHeight();
+}
+function vocabUseBankById(id){state.vocab.bankId=id;var b=VocabStore.getBank(id);state.vocab.stage=(b&&b.stage)||'';state.vocab.step=3;saveAll();renderVocabTab('gen');_vocabFillStep3();}
+function vocabExportBank(id){
+  var bank=VocabStore.getBank(id);if(!bank)return;
+  var blob=new Blob([JSON.stringify(bank,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=(bank.name||'vocab')+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+function vocabDeleteBank(id){
+  if(!confirm('确定删除该词库？'))return;
+  VocabStore.deleteBank(id);
+  if(state.vocab.bankId===id){state.vocab.bankId='';state.vocab.step=1;saveAll();}
+  renderVocabTab('bank');
+}
+function vocabWrongBody(){
+  var wrong=VocabStore.wrongList();
+  var h='<div id="vocabQuizBadge" style="display:'+(state.vocab._lastQuiz?'inline-block':'none')+';font-size:.7rem;background:#EDF5EE;color:#2E7D32;padding:2px 8px;border-radius:8px;margin-bottom:6px">'+(state.vocab._lastQuiz?'✅ 本卷已结构化解析 '+state.vocab._lastQuiz.length+' 题':'')+'</div>';
+  h+='<div class="cfg-row" style="margin-bottom:8px">';
+  h+='<input class="cfg-sel" id="wrongWord" placeholder="单词" style="width:110px">';
+  h+='<input class="cfg-sel" id="wrongMeaning" placeholder="释义(可选)" style="width:110px">';
+  h+='<input class="cfg-sel" id="wrongCount" type="number" value="1" min="1" style="width:56px">';
+  h+='<select class="cfg-sel" id="wrongReason"><option>形近混淆</option><option>词义偏差</option><option>搭配错误</option><option>拼写</option><option>其他</option></select>';
+  h+='<button class="cfg-btn" style="padding:6px 12px" onclick="vocabAddWrong()">录入</button></div>';
+  if(!wrong.length){
+    h+='<div style="font-size:.8rem;color:var(--text2);padding:12px;text-align:center">错词本为空。线下考试后在此录入错词，可一键生成复习卷。</div>';
+    return h;
+  }
+  h+='<div style="max-height:36vh;overflow-y:auto"><table class="md-table"><thead><tr><th>单词</th><th>释义</th><th>错次</th><th>错因</th><th>操作</th></tr></thead><tbody>';
+  wrong.forEach(function(it){
+    h+='<tr><td>'+it.word+'</td><td>'+(it.meaning||'')+'</td><td>'+it.wrongCount+'</td><td>'+(it.wrongReason||'')+'</td><td><button class="sb-conv-act-btn" onclick="vocabClearWrong(\''+it.word.replace(/'/g,"\\'")+'\')">清除</button></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="cfg-row" style="margin-top:8px"><button class="cfg-btn" onclick="applyVocabGenerate(\'review\')">📚 用错词生成复习卷（'+wrong.length+' 词）</button></div>';
+  return h;
+}
+function vocabAddWrong(){
+  var w=(document.getElementById('wrongWord')||{}).value||'';
+  if(!w.trim()){alert('请输入单词');return;}
+  VocabStore.recordWrong(w.trim(),{meaning:(document.getElementById('wrongMeaning')||{}).value||'',count:+(document.getElementById('wrongCount')||{}).value||1,reason:(document.getElementById('wrongReason')||{}).value||''});
+  renderVocabTab('wrong');
+}
+function vocabClearWrong(word){VocabStore.clearWrong(word);renderVocabTab('wrong');}
+
+// ═══════════════════════════════════════
+// SEND MESSAGE
+// ═══════════════════════════════════════
+// ── 流式等待反馈（思考模型出题需 30s-2min，无反馈会被误认为「没反应」）──
+var _waitTicker=null,_waitStart=0,_gotText=false,_thinkingChars=0,_gotStatus=false;
+function renderWaitStatus(){
+  if(_gotText||!streamEl)return;
+  var el=streamEl.querySelector('.msg-content');if(!el)return;
+  var sec=Math.round((Date.now()-_waitStart)/1000);
+  var tip=_thinkingChars>0?('💭 深度思考中… '+sec+'s（复杂题目属正常）'):(_gotStatus?('⏳ 正在生成… '+sec+'s'):('⏳ 正在连接模型… '+sec+'s'));
+  el.innerHTML='<span style="color:var(--text2);font-size:.8rem">'+tip+'</span><span class="load-dots"><span></span><span></span><span></span></span>';
+  var c=document.getElementById('mpMessages');if(c)c.scrollTop=c.scrollHeight;
+}
+function startWaitTicker(){
+  _waitStart=Date.now();_gotText=false;_thinkingChars=0;_gotStatus=false;
+  stopWaitTicker();renderWaitStatus();
+  _waitTicker=setInterval(function(){if(_gotText){stopWaitTicker();return}renderWaitStatus()},1000);
+}
+function stopWaitTicker(){clearInterval(_waitTicker);_waitTicker=null}
+
+async function sendMsg(){
+  const input=document.getElementById('userInput');
+  const text=input.value.trim();
+  if(!text||state.isLoading)return;
+  input.value='';input.style.height='auto';
+  document.getElementById('sendBtn').disabled=true;state.isLoading=true;
+
+  // Collapse config
+  const cfg=document.getElementById('mpConfig');if(cfg)cfg.style.maxHeight='0';
+
+  addMsg('user',text);
+
+  let ctx='【重要规则】1.禁止生成依赖图片的题目 2.知识严格模式：仅基于教材和真题知识库回答，不存在的内容请明确说"当前知识库暂无该内容"，禁止编造。\n';
+  if(state.difficulty)ctx+='[难度：'+state.difficulty+']\n';
+  if(ctx)ctx+='\n';
+
+  const userContent=ctx+text;
+  const allMsgs=curMsgs();
+  const apiMsgs=[];
+  for(let i=Math.max(0,allMsgs.length-11);i<allMsgs.length-1;i++){
+    if(!allMsgs[i].streaming)apiMsgs.push({role:allMsgs[i].role,content:allMsgs[i].content});
+  }
+  apiMsgs.push({role:'user',content:userContent});
+
+  addMsg('assistant','',true);
+
+  try{
+    const resp=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('tutor_token')||'')},body:JSON.stringify({messages:apiMsgs,agent:state.agent})});
+    if(!resp.ok){const err=await resp.json().catch(()=>({error:'HTTP '+resp.status}));throw new Error(err.error||'请求失败')}
+    const reader=resp.body.getReader();const decoder=new TextDecoder();let full='',buf='';
+    startWaitTicker();
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      buf+=decoder.decode(value,{stream:true});
+      const lines=buf.split('\n');buf=lines.pop()||'';
+      for(const line of lines){
+        if(!line.startsWith('data: '))continue;
+        let d=null;try{d=JSON.parse(line.slice(6))}catch(e){continue}
+        if(d.type==='text'){_gotText=true;stopWaitTicker();full+=d.text;addMsg('assistant',full,true)}
+        else if(d.type==='thinking'){_thinkingChars+=(d.text||'').length;if(!_gotText)renderWaitStatus()}
+        else if(d.type==='status'){_gotStatus=true;if(!_gotText)renderWaitStatus()}
+        else if(d.type==='error'){throw new Error(d.error||'生成失败')}
+      }
+    }
+    stopWaitTicker();
+    finishStreaming();
+    // 🐛 空回复兜底（思考耗尽/上游截断）：不再留一个空气泡让用户以为「没反应」
+    if(!full.trim()){
+      const msgs=curMsgs();
+      if(msgs.length>0)msgs[msgs.length-1]={role:'assistant',content:'⚠️ 本次未返回内容（生成超时或被截断），请点击重试；若反复出现，请新建会话后再试。',streaming:false};
+      renderMsgs();saveAll();
+      dbg('⚠️ 模型未返回内容','err');
+    }else{
+      const conv=curConv();if(conv&&conv.messages.length>0)conv.title=convTitle(conv.messages);
+      dbg('✅ 生成完成 ('+full.length+' 字)','ok');
+      renderConvList();saveAll();
+    }
+  }catch(e){
+    stopWaitTicker();
+    finishStreaming();
+    dbg('❌ 错误: '+e.message,'err');
+    const msgs=curMsgs();
+    let em=e.message||'未知错误';
+    if(em.includes('Failed to fetch'))em='网络连接失败，请检查网络后重试';
+    if(em.includes('请先登录')){localStorage.removeItem('tutor_token');window.location.href='/login.html';return}
+    if(msgs.length>0)msgs[msgs.length-1]={role:'assistant',content:'❌ 出错了：'+em,streaming:false};
+    else msgs.push({role:'assistant',content:'❌ 出错了：'+em,streaming:false});
+    renderMsgs();saveAll();
+  }finally{
+    state.isLoading=false;
+    document.getElementById('sendBtn').disabled=false;
+    document.getElementById('userInput').focus();
+  }
+}
+
+// ═══════════════════════════════════════
+// KB DASHBOARD
+// ═══════════════════════════════════════
+function toggleKB(){
+  const kb=document.getElementById('kbDash');
+  if(kb.style.display==='block'){kb.style.display='none'}else{kb.style.display='block';loadKB()}
+}
+function loadKB(){
+  fetch('/api/config').then(r=>r.json()).then(d=>{
+    document.getElementById('kbContent').innerHTML='<div>🔗 模型：'+d.model+'</div><div>📚 教材库：✅ 已加载</div><div>📐 语法库：✅ 已加载</div><div>📋 考情库：✅ 已加载</div><div>📝 模板库：✅ 已加载</div><div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:.7rem">RAG：本地文件 | Embedding：未接入</div>';
+  }).catch(()=>{document.getElementById('kbContent').textContent='⚠️ 无法获取状态'});
+}
+
+// ═══════════════════════════════════════
+// RESIZER
+// ═══════════════════════════════════════
+(function(){
+  const sidebar=document.getElementById('sidebar');
+  const resizer=document.getElementById('sbResizer');
+  let dragging=false,startX=0,startW=0;
+  const saved=localStorage.getItem('nav_w');
+  if(saved&&sidebar){sidebar.style.width=saved+'px';document.documentElement.style.setProperty('--nav-w',saved+'px')}
+  resizer.addEventListener('mousedown',function(e){
+    dragging=true;startX=e.clientX;startW=sidebar.offsetWidth;
+    resizer.classList.add('dragging');document.body.style.cursor='col-resize';document.body.style.userSelect='none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!dragging)return;
+    let w=startW+(e.clientX-startX);
+    w=Math.max(240,Math.min(400,w));
+    sidebar.style.width=w+'px';document.documentElement.style.setProperty('--nav-w',w+'px');
+  });
+  document.addEventListener('mouseup',function(){
+    if(!dragging)return;dragging=false;
+    resizer.classList.remove('dragging');document.body.style.cursor='';document.body.style.userSelect='';
+    localStorage.setItem('nav_w',sidebar.offsetWidth);
+  });
+})();
+
+// ═══════════════════════════════════════
+// MOBILE APP V5 — Hash Router + Isolated Agent Stores
+// ═══════════════════════════════════════
+var M={ // Mobile App Namespace
+  // Router state
+  _route:'home',_agent:null,_loading:false,_sheetData:null,
+  // Agent stores (ISOLATED per agent — no cross-contamination)
+  stores:{},
+  // Student data cache
+  _students:null,
+
+  // ═══════ INIT ═══════
+  init:function(){
+    if(window.innerWidth>767)return;
+    // Load agent stores from localStorage
+    M._loadStores();
+    // Render bottom nav
+    M._renderNav();
+    // Route to current hash or default home
+    // 🐛 修复：agent 路由带上 agent id（#/agent/grammar），刷新后不再丢失当前 Agent
+    var hash=window.location.hash.replace('#/','')||'home';
+    var hp=hash.split('/');
+    if(hp[0]==='agent'){M.navigate('agent',true,hp[1]||null)}else{M.navigate(hash,true)}
+    // Listen for hash changes
+    window.addEventListener('hashchange',function(){
+      var h=window.location.hash.replace('#/','')||'home';
+      var pp=h.split('/');
+      if(pp[0]==='agent'){M.navigate('agent',true,pp[1]||null)}else{M.navigate(h,true)}
+    });
+    // Resize handler
+    var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){
+      if(window.innerWidth>767&&document.getElementById('mobile-app').style.display!=='none'){location.reload()}
+      if(window.innerWidth<=767){M._renderNav()}
+    },300)});
+    console.log('📱 Melix Mobile V5 initialized');
+  },
+
+  // ═══════ STORE MANAGEMENT ═══════
+  _loadStores:function(){
+    var agents=['grammar','exam','writing','vocabulary'];
+    agents.forEach(function(a){
+      try{
+        var raw=localStorage.getItem('melix_'+a);
+        M.stores[a]=raw?JSON.parse(raw):{conversations:[],activeConvId:null,config:{}};
+      }catch(e){M.stores[a]={conversations:[],activeConvId:null,config:{}}}
+    });
+    // Load shared app state
+    try{
+      var appRaw=localStorage.getItem('melix_app');
+      M.appState=appRaw?JSON.parse(appRaw):{student:'',difficulty:'',teaching:{stage:'',publisher:'',grade:'',semester:'',unit:''}};
+    }catch(e){M.appState={student:'',difficulty:'',teaching:{stage:'',publisher:'',grade:'',semester:'',unit:''}}}
+  },
+  _saveStore:function(agentId){
+    // 🐛 修复：agentId 为 null 时不再往 localStorage 写 'melix_null' 垃圾数据
+    if(agentId&&M.stores[agentId]){
+      try{localStorage.setItem('melix_'+agentId,JSON.stringify(M.stores[agentId]))}
+      catch(e){
+        // 🐛 容量满静默失败 = 历史会话消失：丢弃最旧的非收藏会话后重试
+        var st=M.stores[agentId],ok=false;
+        for(var r=0;r<20&&!ok;r++){
+          var v=null,vt=Infinity;
+          (st.conversations||[]).forEach(function(c){
+            if(!c.messages||!c.messages.length||c.fav||c.id===st.activeConvId)return;
+            var t=c.createdAt||0;if(t<vt){vt=t;v=c.id}
+          });
+          if(!v)break;
+          st.conversations=st.conversations.filter(function(c){return c.id!==v});
+          try{localStorage.setItem('melix_'+agentId,JSON.stringify(st));ok=true}catch(e2){}
+        }
+      }
+    }
+    try{localStorage.setItem('melix_app',JSON.stringify(M.appState))}catch(e){}
+    // 🐛 手机端会话现在也会上云备份（此前只存 localStorage，被系统清理即永久丢失）
+    cloudSync();
+  },
+  _curStore:function(){
+    if(!M._agent)return null;
+    return M.stores[M._agent];
+  },
+  _curConv:function(){
+    var s=M._curStore();if(!s)return null;
+    if(!s.conversations)s.conversations=[];
+    if(s.activeConvId){
+      var c=s.conversations.find(function(x){return x.id===s.activeConvId});
+      if(c)return c;
+    }
+    return null; // No active conversation = fresh start
+  },
+
+  // ═══════ NAVIGATION ═══════
+  navigate:function(route,skipPush,agentId){
+    M._route=route;M._agent=null;
+    // 🐛 修复：agent 路由的 hash 带 agent id（#/agent/grammar），刷新后可恢复
+    var targetHash=(route==='agent'&&agentId)?'#/agent/'+agentId:'#/'+route;
+    if(!skipPush&&window.location.hash!==targetHash){
+      history.pushState(null,'',targetHash);
+    }
+    M._renderNav();
+    var app=document.getElementById('mobile-app');
+    if(!app)return;
+    app.innerHTML='';
+    switch(route){
+      case'home':M._renderHome(app);break;
+      case'workspace':M._renderWorkspace(app);break;
+      case'agent':M._agent=agentId;if(!agentId){M.navigate('workspace',true);break}M._renderAgent(app,agentId);break;
+      case'students':M._renderStudents(app);break;
+      case'profile':M._renderProfile(app);break;
+    }
+    app.scrollTop=0;
+  },
+
+  // ═══════ BOTTOM NAV ═══════
+  _renderNav:function(){
+    var items=document.querySelectorAll('.m-bnav-item');
+    items.forEach(function(b){
+      var tab=b.dataset.tab;
+      b.classList.toggle('active',tab===M._route||(M._route==='agent'&&tab==='workspace'));
+    });
+  },
+
+  // ═══════ HOME PAGE ═══════
+  _renderHome:function(app){
+    var student=M.appState.student;
+    var sd=student==='nandy'?{name:'Nandy',av:'👩',meta:'昌平区 · 六年级 · 小升初',prog:82}
+      :student==='yiyi'?{name:'熠熠',av:'👧',meta:'海淀区 · 初一 · 初二提前学',prog:65}
+      :{name:'选择学生',av:'🎓',meta:'点击切换',prog:0};
+    var agents=['grammar','exam','writing','vocabulary'];
+    var icons={grammar:'📐',exam:'📋',writing:'✍️',vocabulary:'📚'};
+    var names={grammar:'语法中心',exam:'智能组卷',writing:'作文中心',vocabulary:'词汇检测'};
+    var subs={grammar:'语法讲解 · 专项练习',exam:'生成试卷 · 模拟考试',writing:'作文模板 · 批改指导',vocabulary:'语境出题 · 错词复习'};
+    var counts={grammar:4,exam:2,writing:5,vocabulary:3};
+    // Recent work
+    var recent=[];
+    agents.forEach(function(a){
+      var s=M.stores[a];if(!s||!s.conversations)return;
+      s.conversations.forEach(function(c){if(c.messages&&c.messages.length>0)recent.push({title:c.title||'会话',agent:a,time:c.createdAt||0})});
+    });
+    recent.sort(function(a,b){return b.time-a.time});
+    var rhtml=recent.slice(0,5).map(function(r){
+      var ts='';var diff=Date.now()-r.time;if(diff<86400000)ts='今天';else if(diff<172800000)ts='昨天';else ts=Math.floor(diff/86400000)+'天前';
+      return'<div class="m-recent-item" onclick="M.navigate(\'agent\',false,\''+r.agent+'\')"><span class="m-recent-ic">📄</span><span class="m-recent-tl">'+r.title+'</span><span class="m-recent-tm">'+ts+'</span></div>';
+    }).join('');
+
+    app.innerHTML=
+      '<div class="m-home-hero"><div class="m-home-greeting">👋 Hi, 老师</div><div class="m-home-sub">今天练点什么？</div></div>'+
+      '<div class="m-home-section"><div class="m-home-sectitle">📊 今日任务</div><div class="m-task-grid">'+
+      agents.map(function(a){return'<div class="m-task-item" onclick="M.navigate(\'agent\',false,\''+a+'\')"><div class="m-task-ic">'+icons[a]+'</div><div class="m-task-num">'+counts[a]+'</div><div class="m-task-lb">'+names[a].slice(0,2)+'</div></div>'}).join('')+
+      '</div></div>'+
+      '<div class="m-home-section"><div class="m-home-sectitle">👩‍🎓 最近学生</div>'+
+      '<div class="m-student-card" onclick="M.navigate(\'students\')"><div class="m-student-av">'+sd.av+'</div><div class="m-student-info"><div class="m-student-name">'+sd.name+'</div><div class="m-student-meta">'+sd.meta+'</div><div class="m-student-prog"><div class="m-student-bar"><div class="m-student-fill" style="width:'+sd.prog+'%"></div></div><span class="m-student-pct">'+sd.prog+'%</span></div></div><button class="m-student-btn">继续学习 →</button></div>'+
+      '</div>'+
+      '<div class="m-home-section"><div class="m-home-sectitle">🤖 AI 工作台</div><div class="m-wb-grid">'+
+      agents.map(function(a){return'<div class="m-wb-card" onclick="M.navigate(\'agent\',false,\''+a+'\')"><div class="m-wb-ic">'+icons[a]+'</div><div class="m-wb-title">'+names[a]+'</div><div class="m-wb-sub">'+subs[a]+'</div></div>'}).join('')+
+      '</div></div>'+
+      '<div class="m-cta-card" onclick="M.navigate(\'workspace\')"><div class="m-cta-title">🤖 AI 随时待命</div><div class="m-cta-sub">刷题 · 组卷 · 写作 · 测词 · 随时开始</div></div>'+
+      '<div class="m-home-section"><div class="m-home-sectitle">🕐 最近工作</div><div class="m-recent-list">'+(rhtml||'<div style="font-size:.72rem;color:var(--m-sub);text-align:center;padding:12px">暂无工作记录</div>')+'</div></div>';
+  },
+
+  // ═══════ WORKSPACE PAGE ═══════
+  _renderWorkspace:function(app){
+    var student=M.appState.student;
+    var agents=[
+      {id:'grammar',ic:'📐',name:'语法中心',desc:'语法讲解 · 专项练习 · 阶梯刷题'},
+      {id:'writing',ic:'✍️',name:'作文中心',desc:'作文模板 · 智能批改 · 命题'},
+      {id:'exam',ic:'📋',name:'智能组卷',desc:'生成试卷 · 模拟考试 · 单元测试'},
+      {id:'vocabulary',ic:'📚',name:'词汇检测',desc:'语境出题 · 错词复习 · 词库管理'}
+    ];
+    app.innerHTML=
+      '<div class="m-ws-header">📚 工作台</div>'+
+      '<div class="m-ws-student">当前学生：'+(student==='nandy'?'Nandy · 六年级 · PEP':student==='yiyi'?'熠熠 · 初一 · 人教版':'未选择')+'</div>'+
+      '<div class="m-agent-cards">'+
+      agents.map(function(a){return'<div class="m-agent-card" onclick="M.navigate(\'agent\',false,\''+a.id+'\')"><div class="m-agent-card-ic">'+a.ic+'</div><div class="m-agent-card-info"><div class="m-agent-card-name">'+a.name+'</div><div class="m-agent-card-desc">'+a.desc+'</div></div><div class="m-agent-card-arrow">›</div></div>'}).join('')+
+      '</div>';
+  },
+
+  // ═══════ AGENT PAGE — Independent AI Teaching Space ═══════
+  _renderAgent:function(app,agentId){
+    M._agent=agentId;
+    var store=M.stores[agentId];if(!store){M.stores[agentId]={conversations:[],activeConvId:null,config:{}};store=M.stores[agentId]}
+    var names={grammar:'📐 语法中心',exam:'📋 智能组卷',writing:'✍️ 作文中心',vocabulary:'📚 词汇检测'};
+    var name=names[agentId]||agentId;
+    var conv=M._curConv();
+
+    // Render page structure
+    app.innerHTML=
+      '<div class="m-agent-header">'+
+        '<button class="m-agent-back" onclick="M.navigate(\'workspace\')">←</button>'+
+        '<span class="m-agent-title">'+name+'</span>'+
+        '<span class="m-agent-topic" id="mAgentTopic">'+(M._getTopicLabel(agentId)||'')+'</span>'+
+        '<button class="m-chat-config-btn" onclick="M._openHistory()" title="历史会话">🕘</button>'+
+        '<button class="m-chat-config-btn" onclick="M._openExport()" title="导出Word">📄</button>'+
+      '</div>'+
+      '<div class="m-agent-config" id="mAgentConfig" style="display:none"></div>'+
+      '<div class="m-chat-area" id="mChatArea"></div>'+
+      '<div class="m-chat-input-wrap">'+
+        '<button class="m-chat-config-btn" onclick="M._toggleConfig()" title="配置">⚙</button>'+
+        '<textarea id="mChatInput" rows="1" placeholder="输入教学需求..." onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();M._sendMsg()}"></textarea>'+
+        '<button class="m-chat-send" id="mChatSend" onclick="M._sendMsg()">➤</button>'+
+      '</div>';
+
+    // Render chat area
+    M._renderChat();
+
+    // Focus input
+    setTimeout(function(){var inp=document.getElementById('mChatInput');if(inp)inp.focus()},100);
+  },
+
+  _renderChat:function(){
+    var area=document.getElementById('mChatArea');if(!area)return;
+    var conv=M._curConv();
+    if(!conv||!conv.messages||conv.messages.length===0){
+      area.innerHTML='<div class="m-chat-empty"><div class="m-chat-empty-ic">👋</div><h3>欢迎使用 Melix Teacher</h3><p>输入教学需求开始工作<br>支持 Markdown · 表格 · 代码</p></div>';
+      return;
+    }
+    area.innerHTML='';
+    conv.messages.forEach(function(m){
+      var d=document.createElement('div');d.className='m-msg '+(m.role==='user'?'user':'asst');
+      d.innerHTML='<div class="m-msg-av">'+(m.role==='user'?'👤':'🎓')+'</div><div class="m-msg-content">'+M._md(m.content)+(m.streaming?'<div class="m-dots"><span></span><span></span><span></span></div>':'')+'</div>';
+      area.appendChild(d);
+    });
+    area.scrollTop=area.scrollHeight;
+  },
+
+  // ═══════ AGENT SEND MESSAGE ═══════
+  _sendMsg:async function(){
+    var input=document.getElementById('mChatInput');if(!input)return;
+    var text=input.value.trim();if(!text||M._loading)return;
+    input.value='';input.style.height='auto';M._loading=true;
+    var btn=document.getElementById('mChatSend');if(btn)btn.disabled=true;
+
+    // Ensure active conversation
+    var store=M._curStore();if(!store)return;
+    if(!store.conversations)store.conversations=[];
+    if(!store.activeConvId){
+      var newId=M._agent+'_'+Date.now();
+      store.conversations.unshift({id:newId,agent:M._agent,title:'新会话',messages:[],createdAt:Date.now()});
+      store.activeConvId=newId;
+    }
+    var conv=M._curConv();if(!conv)return;
+
+    // Build context
+    var ctx='';
+    if(M.appState.difficulty)ctx+='[难度：'+M.appState.difficulty+'] ';
+    if(M.appState.student==='nandy')ctx+='[学生：Nandy，昌平区六年级小升初] ';
+    else if(M.appState.student==='yiyi')ctx+='[学生：熠熠，海淀区初一，初二提前学] ';
+
+    // Add user message
+    // 🐛 修复：气泡里只显示用户原始输入，带前缀的版本仅发给 AI
+    var userContent=ctx+text;
+    conv.messages.push({role:'user',content:text});
+    conv.messages.push({role:'assistant',content:'',streaming:true});
+    M._renderChat();M._saveStore(M._agent);
+
+    // Build API messages
+    var apiMsgs=[];
+    for(var i=Math.max(0,conv.messages.length-13);i<conv.messages.length-1;i++){
+      if(!conv.messages[i].streaming&&conv.messages[i].content)apiMsgs.push({role:conv.messages[i].role,content:conv.messages[i].content});
+    }
+    apiMsgs.push({role:'user',content:userContent});
+
+    // 🐛 流式等待反馈：思考模型出题需 30s-2min，无倒计时会被误认为「死机」
+    var lastEl=(document.getElementById('mChatArea')||{}).lastElementChild||null;
+    var _wGot=false,_wThink=0,_wStatus=false;
+    var _wStart=Date.now();
+    var _mWait=function(){
+      if(_wGot||!lastEl)return;
+      var cd=lastEl.querySelector('.m-msg-content');if(!cd)return;
+      var sec=Math.round((Date.now()-_wStart)/1000);
+      var tip=_wThink>0?('💭 深度思考中… '+sec+'s'):(_wStatus?('⏳ 正在生成… '+sec+'s'):('⏳ 正在连接模型… '+sec+'s'));
+      cd.innerHTML='<span style="color:#888;font-size:.8rem">'+tip+'</span><div class="m-dots"><span></span><span></span><span></span></div>';
+      var ar=document.getElementById('mChatArea');if(ar)ar.scrollTop=ar.scrollHeight;
+    };
+    var _wTimer=setInterval(function(){if(_wGot){clearInterval(_wTimer);return}_mWait()},1000);
+    _mWait();
+
+    try{
+      var resp=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('tutor_token')||'')},body:JSON.stringify({messages:apiMsgs,agent:M._agent})});
+      if(!resp.ok){var err=await resp.json().catch(function(){return{error:'HTTP '+resp.status}});throw new Error(err.error||'请求失败')}
+      var reader=resp.body.getReader();var decoder=new TextDecoder();var full='',buf='';
+      while(true){
+        var rd=await reader.read();if(rd.done)break;
+        buf+=decoder.decode(rd.value,{stream:true});var lines=buf.split('\n');buf=lines.pop()||'';
+        for(var li=0;li<lines.length;li++){
+          var l=lines[li];if(!l.startsWith('data: '))continue;
+          var p=null;try{p=JSON.parse(l.slice(6))}catch(e){continue}
+          if(p.type==='text'){
+            _wGot=true;clearInterval(_wTimer);
+            full+=p.text;conv.messages[conv.messages.length-1].content=full;
+            // 🐛 原先每个增量 M._renderChat() 全量重渲染整段对话（长试卷时巨卡）→ 只更新最后一个气泡
+            M._updateLastBubble(lastEl,full);
+          }
+          else if(p.type==='thinking'){_wThink+=(p.text||'').length;if(!_wGot)_mWait()}
+          else if(p.type==='status'){_wStatus=true;if(!_wGot)_mWait()}
+          else if(p.type==='error'){throw new Error(p.error||'生成失败')}
+        }
+      }
+      clearInterval(_wTimer);
+      // 🐛 空回复兜底：移除空气泡并给出明确提示，不再「假装没反应」
+      if(!full.trim()){
+        var lm=conv.messages[conv.messages.length-1];
+        if(lm&&lm.role==='assistant'&&!lm.content)conv.messages.pop();
+        M._renderChat();M._saveStore(M._agent);
+        alert('⚠️ 本次未返回内容（生成超时或被截断），请重新发送或新建会话再试');
+      }else{
+        conv.messages[conv.messages.length-1].streaming=false;
+        conv.title=M._convTitle(conv.messages);
+        M._renderChat();M._saveStore(M._agent);
+      }
+    }catch(e){
+      clearInterval(_wTimer);
+      var em=e.message||'未知错误';
+      if(em.indexOf('请先登录')>=0){localStorage.removeItem('tutor_token');window.location.href='/login.html';return}
+      // 🐛 只替换助手气泡；若空气泡已被移除，不得覆盖用户提问
+      var errObj={role:'assistant',content:'❌ 出错了：'+em,streaming:false};
+      var last2=conv.messages[conv.messages.length-1];
+      if(last2&&last2.role==='assistant')conv.messages[conv.messages.length-1]=errObj;else conv.messages.push(errObj);
+      M._renderChat();M._saveStore(M._agent);
+    }finally{
+      M._loading=false;if(btn)btn.disabled=false;var inp=document.getElementById('mChatInput');if(inp)inp.focus();
+    }
+  },
+
+  // 🐛 只刷新最后一个消息气泡（流式增量专用，替代整段 _renderChat）
+  _updateLastBubble:function(el,full){
+    if(!el)return;
+    var cd=el.querySelector('.m-msg-content');if(!cd)return;
+    cd.innerHTML=M._md(full)+'<div class="m-dots"><span></span><span></span><span></span></div>';
+    var ar=document.getElementById('mChatArea');if(ar)ar.scrollTop=ar.scrollHeight;
+  },
+
+  // ═══════ HISTORY & EXPORT (V5.1 补齐手机端能力) ═══════
+  _esc:function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')},
+  _openHistory:function(){
+    var store=M._curStore();if(!store)return;
+    var convs=(store.conversations||[]).filter(function(c){return c.messages&&c.messages.length>0});
+    if(!convs.length){alert('暂无历史会话');return}
+    convs.sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0)});
+    var h='<div class="m-history-list">';
+    convs.forEach(function(c){
+      var ts=new Date(c.createdAt||Date.now()).toLocaleDateString('zh-CN',{month:'short',day:'numeric'});
+      var t=M._esc(c.title||M._convTitle(c.messages));
+      h+='<div class="m-history-item" onclick="M._switchConv(\''+c.id+'\')">'+
+         '<span class="m-history-title">'+t+'</span>'+
+         '<span class="m-history-time">'+c.messages.length+'条 · '+ts+'</span>'+
+         '<button class="m-history-delete" onclick="event.stopPropagation();M._delConv(\''+c.id+'\')">✕</button></div>';
+    });
+    h+='</div>';
+    document.getElementById('mSheetTitle').textContent='🕘 历史会话';
+    document.getElementById('mSheetBody').innerHTML=h;
+    document.getElementById('mSheetActions').innerHTML='';
+    document.getElementById('mSheetOverlay').classList.add('open');
+    document.getElementById('mSheet').classList.add('open');
+  },
+  _switchConv:function(id){
+    var store=M._curStore();if(!store)return;
+    store.activeConvId=id;M._saveStore(M._agent);M.closeSheet();
+    var cfg=document.getElementById('mAgentConfig');if(cfg)cfg.style.display='none';
+    M._renderChat();
+  },
+  _delConv:function(id){
+    var store=M._curStore();if(!store)return;
+    if(!confirm('确定删除该会话？'))return;
+    store.conversations=(store.conversations||[]).filter(function(c){return c.id!==id});
+    if(store.activeConvId===id)store.activeConvId=null;
+    M._saveStore(M._agent);
+    M._openHistory();M._renderChat();
+  },
+  _openExport:function(){
+    var conv=M._curConv();
+    if(!conv||!conv.messages||!conv.messages.length){alert('请先生成内容再导出');return}
+    var h='<div style="display:flex;flex-direction:column;gap:10px">';
+    [['exam','📝 试卷版（学生用，无答案）'],['answer','📋 答案版'],['teacher','📘 教师版（含解析）']].forEach(function(x){
+      h+='<button class="m-sheet-btn m-sheet-btn-primary" onclick="M._exportDoc(\''+x[0]+'\')">'+x[1]+'</button>';
+    });
+    h+='</div>';
+    document.getElementById('mSheetTitle').textContent='📄 导出 Word';
+    document.getElementById('mSheetBody').innerHTML=h;
+    document.getElementById('mSheetActions').innerHTML='';
+    document.getElementById('mSheetOverlay').classList.add('open');
+    document.getElementById('mSheet').classList.add('open');
+  },
+  _exportDoc:function(section){
+    var conv=M._curConv();if(!conv)return;
+    exportDocFrom(conv.messages,M._agent,section);
+    M.closeSheet();
+  },
+
+  // ═══════ CONFIG PANEL ═══════
+  _toggleConfig:function(){
+    var cfg=document.getElementById('mAgentConfig');if(!cfg)return;
+    if(cfg.style.display==='block'){cfg.style.display='none';return}
+    cfg.style.display='block';cfg.innerHTML=M._buildConfigHTML(M._agent);
+    // Restore state
+    setTimeout(function(){M._restoreConfig()},50);
+  },
+  _buildConfigHTML:function(agentId){
+    var h='';
+    if(agentId==='grammar'){
+      var cats={'词法':['名词','冠词','代词','数词','介词','连词','形容词','副词','动词','情态动词'],'时态':['一般现在时','一般过去时','一般将来时','现在进行时','过去进行时','现在完成时','过去完成时'],'语态/语气':['被动语态','虚拟语气'],'非谓语':['动名词','不定式','分词'],'从句':['宾语从句','状语从句','定语从句','主语从句','表语从句','同位语从句'],'句式':['五种基本句型','There be','强调句','倒装句','省略','反意疑问句']};
+      h+='<div class="m-gram-chips">';
+      var sel=M._curStore().config.selected||[];
+      for(var cat in cats){
+        h+='<div class="m-gram-cat">'+cat+'</div>';
+        cats[cat].forEach(function(item){h+='<span class="m-gram-chip'+(sel.indexOf(item)>=0?' sel':'')+'" onclick="M._toggleGram(\''+item+'\',this)">'+item+'</span>'});
+      }
+      h+='</div><button class="cfg-btn" onclick="M._applyGrammar()">🤖 AI 生成专项练习（已选 '+sel.length+' 项）</button>';
+    }else if(agentId==='exam'){
+      h+='<select class="cfg-sel" id="mExamType"><option value="">试卷类型</option><option value="单元测试">单元测试</option><option value="期中测试">期中测试</option><option value="期末测试">期末测试</option><option value="月考">月考</option><option value="小升初模拟">小升初模拟</option><option value="中考模拟">中考模拟</option><option value="高考模拟">高考模拟</option></select>';
+      h+='<select class="cfg-sel" id="mExamScore"><option value="100">100分</option><option value="120">120分</option><option value="150">150分</option></select>';
+      h+='<select class="cfg-sel" id="mExamDuration"><option value="60">60分钟</option><option value="90">90分钟</option><option value="120">120分钟</option></select>';
+      h+='<button class="cfg-btn" onclick="M._applyExam()">📋 生成试卷</button>';
+    }else if(agentId==='writing'){
+      h+='<select class="cfg-sel" id="mWriteType"><option value="">作文类型</option><option value="看图写话">看图写话</option><option value="书信">书信</option><option value="演讲稿">演讲稿</option><option value="议论文">议论文</option><option value="记叙文">记叙文</option><option value="读后续写">读后续写</option><option value="开放作文">开放作文</option></select>';
+      h+='<select class="cfg-sel" id="mWriteAction"><option value="">操作</option><option value="命题">作文命题</option><option value="模板">作文模板</option><option value="批改">作文批改</option></select>';
+      h+='<button class="cfg-btn" onclick="M._applyWriting()">✍️ 开始</button>';
+    }else if(agentId==='vocabulary'){
+      VocabStore.load();
+      var banks=VocabStore.listBanks();
+      var st=VocabStore.stats();
+      h+='<div class="m-vocab-stats">词库 '+st.bankCount+' 个 · '+st.wordCount+' 词 · 错词 '+st.wrongCount+'</div>';
+      if(banks.length){
+        h+='<select class="cfg-sel" id="mVocabBank">';
+        banks.forEach(function(b){h+='<option value="'+b.id+'">'+b.name+' ('+b.count+'词)</option>'});
+        h+='</select>';
+        h+='<select class="cfg-sel" id="mVocabCount"><option value="10">10题</option><option value="20" selected>20题</option><option value="30">30题</option><option value="50">50题</option></select>';
+        h+='<button class="cfg-btn" onclick="M._applyVocab(\'test\')">📝 生成词汇检测</button>';
+        if(st.wrongCount>0)h+='<button class="cfg-btn" style="margin-top:6px;background:#e74c3c" onclick="M._applyVocab(\'review\')">🔄 错词复习 ('+st.wrongCount+'词)</button>';
+      }else{
+        h+='<div style="padding:12px;color:#999;font-size:13px;text-align:center">暂无词库，请在 PC 端上传词表<br><small>支持 Excel / Word / CSV / TXT</small></div>';
+      }
+    }
+    return h;
+  },
+  _restoreConfig:function(){
+    // V5.1: teaching agent removed; nothing to restore for remaining agents' selects (values read at apply time)
+  },
+  _toggleGram:function(item,el){
+    var sel=M._curStore().config.selected||[];if(!M._curStore().config.selected)M._curStore().config.selected=[];
+    var idx=sel.indexOf(item);if(idx>=0)sel.splice(idx,1);else sel.push(item);
+    el.classList.toggle('sel');
+    var btn=document.querySelector('#mAgentConfig .cfg-btn');if(btn)btn.textContent='🤖 AI 生成专项练习（已选 '+sel.length+' 项）';
+    M._saveStore(M._agent);
+  },
+  _getTopicLabel:function(agentId){
+    var s=M.stores[agentId];if(!s)return'';
+    if(agentId==='grammar'){var sel=s.config.selected||[];return sel.length?sel.slice(0,2).join('、')+(sel.length>2?'…':''):''}
+    if(agentId==='vocabulary'){VocabStore.load();var st=VocabStore.stats();return st.wordCount?st.wordCount+'词':''}
+    return'';
+  },
+  _applyGrammar:function(){
+    var sel=M._curStore().config.selected||[];if(!sel.length){alert('请至少选择一个语法点');return}
+    var diff=M.appState.difficulty||'';
+    var msg='你是北京市英语语法教学专家。请讲解：'+sel.join('、')+'。难度：'+diff+'\n\n按模块输出：一、概念精讲 二、对比辨析 三、北京考试考法 四、常见错误 五、专项练习（单选20+填空10+句型转换5+改错5）\n\n单独输出【答案版】和【教师版（含解析）】。直接输出最终内容。';
+    var inp=document.getElementById('mChatInput');if(inp)inp.value=msg;
+    var cfg=document.getElementById('mAgentConfig');if(cfg)cfg.style.display='none';
+    var topic=document.getElementById('mAgentTopic');if(topic)topic.textContent=sel.slice(0,2).join('、');
+    M._sendMsg();
+  },
+  _applyExam:function(){
+    var type=document.getElementById('mExamType')?.value||'综合测试';
+    var score=document.getElementById('mExamScore')?.value||'100';
+    var dur=document.getElementById('mExamDuration')?.value||'60';
+    var msg='你是北京市英语命题专家。生成一份'+type+'英语试卷。总分'+score+'分，时长'+dur+'分钟，难度：'+(M.appState.difficulty||'')+'\n\n试卷首页标明：学校____ 姓名____ 班级____ 得分____\n按大题号（一、二、三…）编排。输出：【试卷版】→【答案版】→【教师版】。直接输出最终试卷。';
+    var inp=document.getElementById('mChatInput');if(inp)inp.value=msg;
+    var cfg=document.getElementById('mAgentConfig');if(cfg)cfg.style.display='none';
+    M._sendMsg();
+  },
+  _applyWriting:function(){
+    var type=document.getElementById('mWriteType')?.value||'';if(!type){alert('请选择作文类型');return}
+    var action=document.getElementById('mWriteAction')?.value||'';
+    var msg='';
+    if(action==='命题')msg='你是北京市英语作文命题专家。请为'+type+'生成作文题目。输出：作文题目+写作提示+字数要求+评分标准+范文+常用表达。';
+    else if(action==='模板')msg='你是北京市英语作文教学专家。请为'+type+'生成作文模板。输出：基础模板+高分模板+万能句型+高级替换表达+评分标准。';
+    else if(action==='批改')msg='你是北京市英语作文阅卷专家。请批改以下'+type+'作文。输出：总评分+逐句修改版+修改原因+高分范文+可积累表达。\n\n[在此粘贴学生作文]';
+    else msg='你是北京市英语写作教学专家。请讲解'+type+'写作方法。输出：文体特征+结构框架+常用句型+范文2篇+评分要点+常见错误。';
+    var inp=document.getElementById('mChatInput');if(inp)inp.value=msg;
+    var cfg=document.getElementById('mAgentConfig');if(cfg)cfg.style.display='none';
+    M._sendMsg();
+  },
+  _applyVocab:function(mode){
+    VocabStore.load();
+    var msg='';
+    if(mode==='review'){
+      var wrong=VocabStore.wrongList();
+      if(!wrong.length){alert('暂无错词');return}
+      var words=wrong.slice(0,50).map(function(it){return it.word+' — '+(it.meaning||'')}).join('\n');
+      msg='你是北京市K12英语词汇命题专家。以下是学生错词本，请针对这些错词生成复习检测题（语境单选），每题挖空唯一对应目标词。输出【试卷版】→【答案版】→【教师版（含错因分析）】。\n\n【错词列表】\n'+words;
+    }else{
+      var bankId=document.getElementById('mVocabBank')?.value;
+      var bank=VocabStore.getBank(bankId);
+      if(!bank){alert('请选择词库');return}
+      var count=+(document.getElementById('mVocabCount')?.value||20);
+      var items=(bank.items||[]).slice(0,200);
+      var words=items.map(function(it){return it.word+' — '+(it.meaning||'')}).join('\n');
+      msg='你是北京市K12英语词汇命题专家。基于【上传词库】生成'+count+'道词汇语境单选题。要求：完整英文句子挖空，挖空唯一对应目标词；四选项词性一致、语义相关、长度相近；正确答案ABCD随机分布。输出【试卷版】→【答案版】→【教师版（含逐题解析+考查词列表）】。\n\n【词库：'+bank.name+'，共'+items.length+'词，取前'+Math.min(count*2,items.length)+'词出题】\n'+words.slice(0,3000);
+    }
+    var inp=document.getElementById('mChatInput');if(inp)inp.value=msg;
+    var cfg=document.getElementById('mAgentConfig');if(cfg)cfg.style.display='none';
+    M._sendMsg();
+  },
+
+  // ═══════ STUDENT PAGE ═══════
+  _renderStudents:function(app){
+    // 🐛 修复：从服务器读取学生列表（此前硬编码，新建学生看不到），失败回退默认
+    app.innerHTML='<div class="m-ws-header">👩‍🎓 学生管理</div><div class="m-stu-list"><div class="m-loading">加载中…</div></div>';
+    var fallback=[
+      {id:'nandy',name:'Nandy',av:'👩',school:'昌平区霍营小学',grade:'六年级',book:'北京版',focus:'小升初冲刺',prog:82},
+      {id:'yiyi',name:'熠熠',av:'👧',school:'海淀区初中',grade:'初一',book:'人教版',focus:'初二提前学',prog:65}
+    ];
+    fetch('/api/students',{headers:{'Authorization':'Bearer '+(localStorage.getItem('tutor_token')||'')}})
+      .then(function(r){return r.json()})
+      .then(function(list){
+        if(!Array.isArray(list)||!list.length){M._renderStudentList(app,fallback);return}
+        M._renderStudentList(app,list.map(function(s){
+          var prog=(s.targetScore>0&&s.currentScore!=null)?Math.round(s.currentScore/s.targetScore*100):0;
+          return{id:s.id,name:s.name,av:s.avatar||'🎓',school:s.school||'',grade:s.grade||'',book:s.stage||'',focus:(s.sessionCount||0)+' 次辅导',prog:prog};
+        }));
+      })
+      .catch(function(){M._renderStudentList(app,fallback)});
+  },
+  _renderStudentList:function(app,students){
+    app.innerHTML='<div class="m-ws-header">👩‍🎓 学生管理</div><div class="m-stu-list">'+
+      students.map(function(s){var sel=M.appState.student===s.id;
+        return'<div class="m-stu-card-item'+(sel?' m-student-selected':'')+'" onclick="M._selectStudent(\''+M._esc(s.id)+'\')"><div class="m-stu-card-top"><div class="m-stu-card-av">'+s.av+'</div><div><div class="m-stu-card-name">'+M._esc(s.name)+(sel?' ✅':'')+'</div><div class="m-stu-card-school">'+M._esc(s.school)+' · '+M._esc(s.grade)+'</div></div></div><div class="m-stu-card-stats"><span>📖 '+M._esc(s.book)+'</span><span>🎯 '+M._esc(s.focus)+'</span><span>📊 '+s.prog+'%</span></div></div>';
+      }).join('')+'</div>';
+  },
+  _selectStudent:function(id){
+    M.appState.student=id;M._saveStore(M._agent);M._renderStudents(document.getElementById('mobile-app'));
+    setTimeout(function(){M.navigate('home')},300);
+  },
+
+  // ═══════ PROFILE PAGE ═══════
+  _renderProfile:function(app){
+    var diff=M.appState.difficulty||'自动';
+    var student=M.appState.student==='nandy'?'Nandy':M.appState.student==='yiyi'?'熠熠':'不限';
+    app.innerHTML=
+      '<div class="m-prof-header"><div class="m-prof-av">🎓</div><div class="m-prof-name">'+(window._tutorUser?window._tutorUser.nickname:'老师')+'</div><div class="m-prof-phone">Melix Teacher</div></div>'+
+      '<div class="m-settings">'+
+        '<div class="m-set-group"><div class="m-set-grouplbl">学习设置</div>'+
+          '<div class="m-set-item" onclick="M._cycleDifficulty()">📊 难度设置 <span class="m-set-item-val" id="mDiffLbl">'+diff+'</span></div>'+
+          '<div class="m-set-item" onclick="M.navigate(\'students\')">👩‍🎓 切换学生 <span class="m-set-item-val">'+student+'</span></div>'+
+        '</div>'+
+        '<div class="m-set-group"><div class="m-set-grouplbl">数据管理</div>'+
+          '<div class="m-set-item" onclick="M._clearHistory()">🗑 清除所有历史</div>'+
+        '</div>'+
+        '<div class="m-set-group"><div class="m-set-grouplbl">关于</div>'+
+          '<div class="m-set-item">📦 版本 <span class="m-set-item-val">V5.0</span></div>'+
+          '<div class="m-set-item">🔗 模型 <span class="m-set-item-val" id="mModelLblV5">-</span></div>'+
+        '</div>'+
+      '</div>';
+    fetch('/api/config').then(function(r){return r.json()}).then(function(d){var el=document.getElementById('mModelLblV5');if(el)el.textContent=d.model}).catch(function(){});
+  },
+  _cycleDifficulty:function(){
+    var opts=['','小学','小升初','初一','初二','初三','中考','高一','高二','高三','高考'];
+    var idx=opts.indexOf(M.appState.difficulty);idx=(idx+1)%opts.length;M.appState.difficulty=opts[idx];
+    M._saveStore(M._agent);M._renderProfile(document.getElementById('mobile-app'));
+  },
+  _clearHistory:function(){
+    if(!confirm('确定清除所有会话历史吗？此操作不可撤销。'))return;
+    var agents=['grammar','exam','writing','vocabulary'];
+    agents.forEach(function(a){localStorage.removeItem('melix_'+a);M.stores[a]={conversations:[],activeConvId:null,config:{}}});
+    localStorage.removeItem('melix_app');M.appState={student:'',difficulty:'',teaching:{}};
+    M.navigate('home');
+  },
+
+  // ═══════ BOTTOM SHEET ═══════
+  openSheet:function(title,content,actions){
+    M._sheetData={title:title,content:content,actions:actions||[]};
+    document.getElementById('mSheetTitle').textContent=title;
+    document.getElementById('mSheetBody').innerHTML='<div class="m-msg-content">'+M._md(content)+'</div>';
+    var actEl=document.getElementById('mSheetActions');
+    actEl.innerHTML=(actions||[]).map(function(a){return'<button class="m-sheet-btn '+(a.primary?'m-sheet-btn-primary':'m-sheet-btn-outline')+'" onclick="('+a.onclick.toString()+')()">'+a.label+'</button>'}).join('');
+    document.getElementById('mSheetOverlay').classList.add('open');
+    document.getElementById('mSheet').classList.add('open');
+  },
+  closeSheet:function(){
+    document.getElementById('mSheetOverlay').classList.remove('open');
+    document.getElementById('mSheet').classList.remove('open');
+  },
+
+  // ═══════ MARKDOWN RENDERER ═══════
+  _md:function(text){
+    if(!text)return'';
+    var h=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    h=h.replace(/```(\w*)\n?([\s\S]*?)```/g,'<pre><code>$2</code></pre>');
+    h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
+    h=h.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+    h=h.replace(/\*([^*]+)\*/g,'<em>$1</em>');
+    h=h.replace(/^###\s(.+)$/gm,'<h3>$1</h3>');
+    h=h.replace(/^##\s(.+)$/gm,'<h2>$1</h2>');
+    h=h.replace(/^#\s(.+)$/gm,'<h1>$1</h1>');
+    h=h.replace(/^&gt;\s?(.*)$/gm,'<blockquote>$1</blockquote>');
+    h=h.replace(/((?:^\|.+\|\n?)+)/gm,function(m){
+      var lines=m.trim().split('\n');if(lines.length<2)return m;
+      var html='<table>';lines.forEach(function(line,i){
+        var cells=line.split('|').filter(function(_,j,arr){return j>0&&j<arr.length-1}).map(function(c){return c.trim()});
+        if(i===0)html+='<thead><tr>'+cells.map(function(c){return'<th>'+c+'</th>'}).join('')+'</tr></thead>';
+        else if(i===1&&cells.every(function(c){return/^[-: ]+$/.test(c)}))html+='<tbody>';
+        else html+='<tr>'+cells.map(function(c){return'<td>'+c+'</td>'}).join('')+'</tr>';
+      });
+      html+='</tbody></table>';return html;
+    });
+    h=h.replace(/^- (.+)$/gm,'<li>$1</li>');
+    h=h.replace(/((?:<li>.*<\/li>\s*)+)/g,'<ul>$1</ul>');
+    h=h.replace(/<\/ul>\s*<ul>/g,'');
+    h=h.replace(/\n\n/g,'</p><p>');
+    h=h.replace(/\n/g,'<br>');
+    h='<p>'+h+'</p>';
+    h=h.replace(/<p>\s*<\/p>/g,'');
+    return h;
+  },
+  _convTitle:function(msgs){
+    if(!msgs||!msgs.length)return'新会话';
+    for(var i=0;i<msgs.length;i++){if(msgs[i].role==='user'){
+      var t=msgs[i].content.replace(/【[^】]*】/g,'').trim();
+      t=t.replace(/^你是[^。]{2,30}。/,'').replace(/^请/,'').trim();
+      t=t.split(/[\n。]/)[0].trim();
+      if(t.length>20)t=t.slice(0,20)+'…';
+      return t||'新会话';
+    }}
+    return'新会话';
+  }
+};
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+loadAll();
+document.getElementById('difficultySelect').value=state.difficulty;
+document.getElementById('mpAgentBadge').textContent=AGENT_NAMES[state.agent];
+document.querySelectorAll('.sb-agent').forEach(b=>{if(b.dataset.agent===state.agent)b.classList.add('active')});
+
+// Server check
+fetch('/api/health').then(r=>r.json()).then(d=>{dbg('✅ 服务器已连接，模型: '+d.model,'ok')}).catch(()=>{dbg('❌ 无法连接服务器','err')});
+
+updateDifficulty();
+// V4.2: Always start fresh — create new empty conversation for every agent on startup
+// History is preserved in conversations[] but never auto-activated
+// Cap conversations per agent to prevent localStorage overflow (5MB limit)
+var MAX_CONVS_PER_AGENT=20;
+Object.keys(state.sessions).forEach(agent=>{
+  const s=state.sessions[agent];
+  // 超上限时：优先保留有内容的会话，再按时间保留最新的（防止空会话挤掉有内容的旧会话）
+  if(s.conversations && s.conversations.length>MAX_CONVS_PER_AGENT){
+    s.conversations.sort(function(a,b){
+      const am=(a.messages&&a.messages.length)?1:0, bm=(b.messages&&b.messages.length)?1:0;
+      if(am!==bm)return bm-am;
+      return (b.createdAt||0)-(a.createdAt||0);
+    });
+    s.conversations=s.conversations.slice(0,MAX_CONVS_PER_AGENT);
+  }
+  // 🐛 修复：复用已有空会话，避免每次刷新页面都堆积一个新空会话，20次刷新后挤掉有内容的旧会话
+  let empty=s.conversations.find(function(c){return !c.messages||c.messages.length===0});
+  if(!empty){
+    const pfx=(AGENT_PREFIX[agent]||'conv')+'_';
+    empty={id:pfx+Date.now(),agent:agent,title:'新会话',messages:[],createdAt:Date.now()};
+    s.conversations.push(empty);
+  }
+  s.activeConvId=empty.id;
+  if(agent==='grammar')s.selected=[];
+  if(agent==='writing'){s.writeType='';s.writeAction='';}
+  if(agent==='exam'){s.examType='';}
+});
+renderMsgs();
+renderConvList();
+updateEmpty();
+buildConfig(state.agent);
+saveAll();
+
+// Auto-resize textarea
+document.getElementById('userInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'});
+
+// Mobile init — V5 Hash Router Architecture
+if(window.innerWidth<=767){
+  M.init();
+} else {
+  // Desktop init (existing)
+  document.querySelector('.app').style.display='flex';
+  var mp=document.getElementById('mainPanel');
+  if(mp){mp.style.display='flex';mp.classList.remove('m-visible')}
+}
+
+// ═══════ PWA SERVICE WORKER ═══════
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){})}
+</script>
+</body>
+</html>
