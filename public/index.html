@@ -539,7 +539,7 @@ const state={
   teaching:{stage:'',publisher:'',grade:'',semester:'',unit:''},
   vocab:{tab:'gen',step:1,bankId:'',count:20,level:'基础',stage:'',parsed:null},
   reading:{topic:'',level:'小升初',len:'250',_words:[]},
-  speaking:{mode:'shadow',level:'小升初',count:'5',topic:''},
+  speaking:{mode:'shadow',level:'小升初',count:'5',topic:'',custom:''},
   isLoading:false
 };
 
@@ -614,7 +614,7 @@ function statePayload(){
     sessions:state.sessions,teaching:state.teaching,
     vocab:{tab:state.vocab.tab,step:state.vocab.step,bankId:state.vocab.bankId,count:state.vocab.count,level:state.vocab.level,stage:state.vocab.stage},
     reading:{topic:state.reading.topic,level:state.reading.level,len:state.reading.len},
-    speaking:{mode:state.speaking.mode,level:state.speaking.level,count:state.speaking.count,topic:state.speaking.topic}};
+    speaking:{mode:state.speaking.mode,level:state.speaking.level,count:state.speaking.count,topic:state.speaking.topic,custom:state.speaking.custom}};
 }
 function saveAll(){
   try{localStorage.setItem('tutor_v4',JSON.stringify(statePayload()))}
@@ -996,7 +996,8 @@ function buildConfig(agent){
     html+='<select class="cfg-sel" id="spkCount" onchange="state.speaking.count=this.value;saveAll()"><option value="5">5句</option><option value="10">10句</option></select>';
     html+='<input class="cfg-sel" id="spkTopic" placeholder="主题（可选）" style="flex:1;min-width:120px" onchange="state.speaking.topic=this.value;saveAll()">';
     html+='</div><div class="cfg-row"><button class="cfg-btn" onclick="spkStart()">开始训练</button></div>';
-    html+='<div style="font-size:.68rem;color:var(--text2);margin-top:4px">跟读：AI 生成句子，朗读后自动逐词打分；听写：听朗读写句子，逐词比对。需 Chrome/Edge 浏览器（麦克风权限）。</div>';
+    html+='<div style="margin-top:8px"><textarea id="spkCustom" rows="3" placeholder="自定义句子（可选，每行一句）：填了就用这些句子练，不填则 AI 按学段生成" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:.78rem;font-family:inherit;resize:vertical;outline:none" onchange="state.speaking.custom=this.value;saveAll()"></textarea></div>';
+    html+='<div style="font-size:.68rem;color:var(--text2);margin-top:4px">跟读：朗读后自动逐词打分；听写：听朗读写句子。识别与评分均在浏览器本地完成；自定义句子不依赖 AI。</div>';
   }else if(agent==='vocabulary'){
     html=renderVocabWizard();
   }
@@ -1022,7 +1023,7 @@ function restoreConfig(agent){
     const md=document.getElementById('spkMode');if(md&&s.mode)md.value=s.mode;
     const lv=document.getElementById('spkLevel');if(lv&&s.level)lv.value=s.level;
     const cn=document.getElementById('spkCount');if(cn&&s.count)cn.value=s.count;
-    const tp=document.getElementById('spkTopic');if(tp&&s.topic)tp.value=s.topic;
+    const cu=document.getElementById('spkCustom');if(cu&&s.custom)cu.value=s.custom;
   }
   if(agent==='reading'){
     const s=state.reading;
@@ -2154,11 +2155,12 @@ function wordDiff(target,said){
 }
 var _spk=null,_spkRec=null;
 function spkStart(){
-  var md=document.getElementById('spkMode'),lv=document.getElementById('spkLevel'),cn=document.getElementById('spkCount'),tp=document.getElementById('spkTopic');
+  var md=document.getElementById('spkMode'),lv=document.getElementById('spkLevel'),cn=document.getElementById('spkCount'),tp=document.getElementById('spkTopic'),cu=document.getElementById('spkCustom');
   if(md)state.speaking.mode=md.value;
   if(lv)state.speaking.level=lv.value;
   if(cn)state.speaking.count=cn.value;
   if(tp)state.speaking.topic=tp.value;
+  if(cu)state.speaking.custom=cu.value;
   saveAll();
   var isDict=state.speaking.mode==='dictation';
   if(isDict&&!('speechSynthesis' in window)){alert('当前浏览器不支持语音合成，请使用 Chrome/Edge');return}
@@ -2166,8 +2168,17 @@ function spkStart(){
     var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!SR){alert('当前浏览器不支持语音识别，请使用 Chrome/Edge');return}
   }
+  // 自定义句子：每行一句，本地直接开练（不依赖 AI key）
+  var customLines=(state.speaking.custom||'').split('\n').map(function(l){return l.trim()}).filter(Boolean);
+  var o=_spkOverlay(customLines.length?'准备中…':'正在生成练习句…');
+  if(customLines.length){
+    setTimeout(function(){
+      _spk={list:customLines.map(function(l){return {text:l,trans:''}}),i:0,scores:[],mode:state.speaking.mode};
+      _spkRender();
+    },60);
+    return;
+  }
   var prompt='生成 '+state.speaking.count+' 句适合「'+state.speaking.level+'」学段学生的英语'+(isDict?'听写':'口语跟读')+'练习句'+(state.speaking.topic?'，主题：'+state.speaking.topic:'')+'。每句 8-14 词，用词地道且符合学段水平。严格只输出一个 json 代码块，格式：\n```json\n[{"text":"English sentence","trans":"中文翻译"}]\n```';
-  var ov=_spkOverlay('正在生成练习句…');
   aiChatOnce('speaking',prompt).then(function(t){
     var blocks=(t||'').match(/```json\s*([\s\S]*?)```/g)||[];
     var arr=[];
@@ -2175,10 +2186,10 @@ function spkStart(){
       try{var a=JSON.parse(b.replace(/```json\s*/,'').replace(/```/,'').trim());if(Array.isArray(a))arr=arr.concat(a)}catch(e){}
     });
     arr=arr.filter(function(o){return o&&o.text});
-    if(!arr.length){ov.remove();alert('句子生成失败，请重试');return}
+    if(!arr.length){o.remove();alert('句子生成失败，请重试');return}
     _spk={list:arr,i:0,scores:[],mode:state.speaking.mode};
     _spkRender();
-  }).catch(function(e){ov.remove();alert('生成失败：'+(e.message||e))});
+  }).catch(function(e){o.remove();alert('生成失败：'+(e.message||e))});
 }
 function _spkOverlay(txt){
   var o=document.getElementById('spkOverlay');
