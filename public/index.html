@@ -175,6 +175,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .vrate-done{text-align:center;padding:8px 0 4px}
 .vrate-done-num{font-size:1.6rem;font-weight:700;color:var(--pri)}
 .vrate-due-card{display:flex;align-items:center;gap:10px;background:var(--pri-light);border:1px solid var(--pri-active-border);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:.8rem;color:var(--pri-dark)}
+.rword{color:var(--pri);font-weight:600;border-bottom:1.5px dotted var(--pri);cursor:pointer;padding:0 1px;border-radius:2px}
+.rword:hover{background:var(--pri-light)}
 
 @media(max-width:768px){:root{--nav-w:100vw}.sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;transform:translateX(-100%);transition:transform .25s}.sidebar.open{transform:translateX(0)}.sb-resizer{display:none}}
 
@@ -408,6 +410,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
         <button class="sb-agent" data-agent="exam" onclick="switchAgent('exam',this)"><span class="sb-agent-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7V3z"/><path d="M14 3v4h4"/><path d="M10 12h6M10 16h6"/></svg></span><span class="sb-agent-lb">智能组卷</span><span class="sb-agent-bg">出卷</span></button>
         <button class="sb-agent" data-agent="writing" onclick="switchAgent('writing',this)"><span class="sb-agent-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 5.5l5 5L9 20H4v-5l9.5-9.5z"/><path d="M11.5 7.5l5 5"/></svg></span><span class="sb-agent-lb">作文中心</span><span class="sb-agent-bg">写作</span></button>
         <button class="sb-agent" data-agent="vocabulary" onclick="switchAgent('vocabulary',this)"><span class="sb-agent-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5c3-1.5 6-1.5 10 0 4-1.5 7-1.5 10 0V19c-3-1.5-6-1.5-10 0-4-1.5-7-1.5-10 0V5.5z"/><path d="M12 5.5V19"/></svg></span><span class="sb-agent-lb">智能词汇检测</span><span class="sb-agent-bg">测词</span></button>
+        <button class="sb-agent" data-agent="reading" onclick="switchAgent('reading',this)"><span class="sb-agent-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></span><span class="sb-agent-lb">精读工坊</span><span class="sb-agent-bg">泛读</span></button>
       </div>
       <div class="sb-sec">
         <div class="sb-sec-hd"><span class="sb-sec-lbl">历史会话 · History</span><button class="sb-sec-btn" id="sbScopeBtn" onclick="toggleConvScope()" title="切换显示全部/当前 Agent 的会话"></button><button class="sb-sec-btn" onclick="newConv()">＋ 新建</button></div>
@@ -495,8 +498,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 // ═══════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════
-const AGENT_NAMES={grammar:'语法中心',exam:'智能组卷',writing:'作文中心',vocabulary:'智能词汇检测'};
-const AGENT_PREFIX={grammar:'gram',exam:'exam',writing:'write',vocabulary:'vocab'};
+const AGENT_NAMES={grammar:'语法中心',exam:'智能组卷',writing:'作文中心',vocabulary:'智能词汇检测',reading:'精读工坊'};
+const AGENT_PREFIX={grammar:'gram',exam:'exam',writing:'write',vocabulary:'vocab',reading:'read'};
 const GRAMMAR_DATA={
   '词法':['名词','冠词','代词','数词','介词','连词','形容词','副词','动词','情态动词'],
   '时态':['一般现在时','一般过去时','一般将来时','现在进行时','过去进行时','现在完成时','过去完成时'],
@@ -524,9 +527,11 @@ const state={
     exam:makeSession('exam'),
     writing:makeSession('writing'),
     vocabulary:makeSession('vocabulary'),
+    reading:makeSession('reading'),
   },
   teaching:{stage:'',publisher:'',grade:'',semester:'',unit:''},
   vocab:{tab:'gen',step:1,bankId:'',count:20,level:'基础',stage:'',parsed:null},
+  reading:{topic:'',level:'小升初',len:'250',_words:[]},
   isLoading:false
 };
 
@@ -599,7 +604,8 @@ function curMsgs(){return curConv().messages}
 function statePayload(){
   return{agent:state.agent,difficulty:state.difficulty,
     sessions:state.sessions,teaching:state.teaching,
-    vocab:{tab:state.vocab.tab,step:state.vocab.step,bankId:state.vocab.bankId,count:state.vocab.count,level:state.vocab.level,stage:state.vocab.stage}};
+    vocab:{tab:state.vocab.tab,step:state.vocab.step,bankId:state.vocab.bankId,count:state.vocab.count,level:state.vocab.level,stage:state.vocab.stage},
+    reading:{topic:state.reading.topic,level:state.reading.level,len:state.reading.len}};
 }
 function saveAll(){
   try{localStorage.setItem('tutor_v4',JSON.stringify(statePayload()))}
@@ -635,6 +641,7 @@ function loadAll(){
       if(!state.sessions[state.agent])state.agent='grammar';
       if(d.teaching)state.teaching=d.teaching;
       if(d.vocab)state.vocab=Object.assign(state.vocab,d.vocab,{parsed:null});
+      if(d.reading)state.reading=Object.assign(state.reading,d.reading,{_words:[]});
       if(d.sessions){
         Object.keys(d.sessions).forEach(function(k){
           if(state.sessions[k]&&d.sessions[k]){
@@ -866,6 +873,7 @@ function renderMsgs(){
 function createMsgEl(msg,streaming){
   const d=document.createElement('div');d.className='msg '+msg.role;
   d.innerHTML='<div class="msg-av">'+(msg.role==='user'?'T':'M')+'</div><div class="msg-content">'+md(msg.content)+(streaming?'<span class="load-dots"><span></span><span></span><span></span></span>':'')+'</div>';
+  if(state.agent==='reading'&&!streaming&&msg.role==='assistant'){setTimeout(function(){decorateReading(d)},0)}
   return d;
 }
 function updateStreamEl(content){
@@ -964,6 +972,13 @@ function buildConfig(agent){
     html+='<select class="cfg-sel" id="writeType" onchange="cur().writeType=this.value;saveAll()"><option value="">作文类型</option><option value="看图写话">看图写话</option><option value="书信">书信</option><option value="通知">通知</option><option value="演讲稿">演讲稿</option><option value="邀请信">邀请信</option><option value="感谢信">感谢信</option><option value="申请信">申请信</option><option value="日记">日记</option><option value="观点类">观点类</option><option value="图表类">图表类</option><option value="议论文">议论文</option><option value="记叙文">记叙文</option><option value="说明文">说明文</option><option value="读后续写">读后续写</option><option value="概要写作">概要写作</option><option value="开放作文">开放作文</option></select>';
     html+='<select class="cfg-sel" id="writeAction" onchange="cur().writeAction=this.value;saveAll()"><option value="">操作</option><option value="命题">作文命题</option><option value="模板">作文模板</option><option value="批改">作文批改</option></select>';
     html+='</div><div class="cfg-row"><button class="cfg-btn" onclick="applyWriting()">开始</button></div>';
+  }else if(agent==='reading'){
+    html='<div class="cfg-title">精读工坊</div><div class="cfg-row">';
+    html+='<select class="cfg-sel" id="readLevel" onchange="state.reading.level=this.value;saveAll()"><option value="小学">小学</option><option value="小升初">小升初</option><option value="初一">初一</option><option value="初二">初二</option><option value="初三">初三</option><option value="中考">中考</option><option value="高一">高一</option><option value="高二">高二</option><option value="高三">高三</option><option value="高考">高考</option></select>';
+    html+='<select class="cfg-sel" id="readLen" onchange="state.reading.len=this.value;saveAll()"><option value="150">150词</option><option value="250">250词</option><option value="400">400词</option></select>';
+    html+='<input class="cfg-sel" id="readTopic" placeholder="主题（可选）如：太空探索" style="flex:1;min-width:150px" onchange="state.reading.topic=this.value;saveAll()">';
+    html+='</div><div class="cfg-row"><button class="cfg-btn" onclick="applyReading()">生成精读文章</button></div>';
+    html+='<div style="font-size:.68rem;color:var(--text2);margin-top:4px">AI 按学段生成文章+精讲+理解题；文中生词可点击查义，一键加入每日复习。</div>';
   }else if(agent==='vocabulary'){
     html=renderVocabWizard();
   }
@@ -983,6 +998,12 @@ function restoreConfig(agent){
     const s=cur();
     if(s.writeType){const e=document.getElementById('writeType');if(e)e.value=s.writeType}
     if(s.writeAction){const e=document.getElementById('writeAction');if(e)e.value=s.writeAction}
+  }
+  if(agent==='reading'){
+    const s=state.reading;
+    const le=document.getElementById('readLevel');if(le&&s.level)le.value=s.level;
+    const ln=document.getElementById('readLen');if(ln&&s.len)ln.value=s.len;
+    const tp=document.getElementById('readTopic');if(tp&&s.topic)tp.value=s.topic;
   }
   if(agent==='grammar')updateGramCount();
   const el=document.getElementById('mpConfig');
@@ -1965,6 +1986,126 @@ function vocabRateClose(){
 }
 
 // ═══════════════════════════════════════
+// 精读工坊 · AI 精读 + 生词标注 + 点词查义
+// 流程:生成文章(AI附json生词表) → 渲染后 decorateReading 包裹生词
+//      → 点击查义(本地/AI兜底) → 一键 fsrsRate 加入每日复习
+// ═══════════════════════════════════════
+function buildReadingPrompt(cfg){
+  var L=[];
+  L.push('你是一名资深的北京K12英语精读教练。请生成一篇适合「'+(cfg.level||'小升初')+'」学段学生的英文精读文章及配套学习材料。');
+  L.push('主题：'+(cfg.topic||'适合该学段的趣味知识主题')+'。篇幅约 '+(cfg.len||'250')+' 词。生词率控制在3%左右：以该学段大纲词汇为主，穿插少量可通过语境猜测词义的新词。');
+  L.push('');
+  L.push('严格按以下结构输出，四个标记缺一不可：');
+  L.push('【文章】英文标题 + 正文（3-5段，语言地道、句式有梯度，适合精读）');
+  L.push('【生词表】markdown表格，列：| 单词 | 词性 | 释义 |（本文语境义，6-12个新词）');
+  L.push('【理解题】3道阅读理解选择题，题干+A-D选项（答案写在【精讲】末尾）');
+  L.push('【精讲】逐段中文点拨：长难句结构解析 + 考点提示（每段2-3句，精炼）+ 末尾附理解题答案');
+  L.push('## 机器数据（供系统解析生词标注，勿增删字段）');
+  L.push('```json');
+  L.push('[{"word":"生词原形","pos":"n.","meaning":"本文语境中文释义"}]');
+  L.push('```');
+  L.push('除以上四个部分与json数据外，严禁任何开场白、追问、建议或解释性语句。');
+  return L.join('\n');
+}
+function applyReading(){
+  if(state.isLoading)return;
+  var t=document.getElementById('readTopic'),l=document.getElementById('readLevel'),n=document.getElementById('readLen');
+  if(t)state.reading.topic=t.value;
+  if(l)state.reading.level=l.value;
+  if(n)state.reading.len=n.value;
+  saveAll();
+  state.reading._words=[];
+  sendMsg(buildReadingPrompt(state.reading));
+}
+function tryImportReadingWords(){
+  var words=[],seen={};
+  (curMsgs()||[]).forEach(function(m){
+    if(m.role!=='assistant')return;
+    var blocks=(m.content||'').match(/```json\s*([\s\S]*?)```/g)||[];
+    blocks.forEach(function(b){
+      try{
+        var arr=JSON.parse(b.replace(/```json\s*/,'').replace(/```/,'').trim());
+        if(Array.isArray(arr))arr.forEach(function(o){
+          if(o&&o.word&&!seen[String(o.word).toLowerCase()]){seen[String(o.word).toLowerCase()]=1;words.push({word:String(o.word),pos:o.pos||'',meaning:o.meaning||''})}
+        });
+      }catch(e){}
+    });
+  });
+  if(words.length)state.reading._words=words;
+}
+function decorateReading(scope){
+  try{
+    if(!state.reading._words||!state.reading._words.length)tryImportReadingWords();
+    var words=state.reading._words||[];
+    if(!words.length||!scope)return;
+    var map={};
+    words.forEach(function(w){if(w&&w.word)map[w.word.toLowerCase()]=1});
+    var walker=document.createTreeWalker(scope,NodeFilter.SHOW_TEXT,null);
+    var nodes=[];
+    while(walker.nextNode())nodes.push(walker.currentNode);
+    nodes.forEach(function(n){
+      if(!n.nodeValue||!n.nodeValue.trim())return;
+      var pn=n.parentNode;
+      if(!pn||/^(A|SCRIPT|STYLE|CODE|PRE|BUTTON)$/.test(pn.nodeName))return;
+      if(pn.classList&&pn.classList.contains('rword'))return;
+      var txt=n.nodeValue,re=/[A-Za-z][A-Za-z'-]*/g,last=0,m,replaced=false,frag=document.createDocumentFragment();
+      while((m=re.exec(txt))){
+        if(map[m[0].toLowerCase()]){
+          replaced=true;
+          if(m.index>last)frag.appendChild(document.createTextNode(txt.slice(last,m.index)));
+          var sp=document.createElement('span');
+          sp.className='rword';sp.textContent=m[0];
+          sp.onclick=function(){readingLookup(this.textContent)};
+          frag.appendChild(sp);
+          last=m.index+m[0].length;
+        }
+      }
+      if(replaced){
+        if(last<txt.length)frag.appendChild(document.createTextNode(txt.slice(last)));
+        pn.replaceChild(frag,n);
+      }
+    });
+  }catch(e){}
+}
+var _rlookup=null;
+function readingLookup(word){
+  word=(word||'').trim();if(!word)return;
+  var local=null;
+  ((state.reading&&state.reading._words)||[]).forEach(function(w){if(w&&w.word&&w.word.toLowerCase()===word.toLowerCase())local=w});
+  _rlookup={word:word,meaning:(local&&local.meaning)||''};
+  _renderRLookup();
+  if(!local){
+    aiChatOnce('reading','给出单词 "'+word+'" 的简明中文释义（一行，含词性，适合中小学生）。只输出释义本身，不要其他内容。')
+      .then(function(t){if(_rlookup){_rlookup.meaning=(t||'').trim().slice(0,150);_renderRLookup()}})
+      .catch(function(){if(_rlookup&&!_rlookup.meaning){_rlookup.meaning='释义获取失败，可稍后重试';_renderRLookup()}});
+  }
+}
+function _renderRLookup(){
+  var o=document.getElementById('rlookOv');
+  if(!_rlookup){if(o)o.remove();return}
+  if(!o){o=document.createElement('div');o.id='rlookOv';o.className='vrate-ov';document.body.appendChild(o);
+    o.onclick=function(ev){if(ev.target===o)readingLookupClose()}}
+  var r=_rlookup;
+  o.innerHTML='<div class="vrate-card" style="max-width:340px">'
+    +'<div class="vrate-word" style="font-size:1.5rem">'+r.word+'</div>'
+    +'<div class="vrate-meaning" style="display:block">'+(r.meaning||'查找中…')+'</div>'
+    +'<div class="cfg-row" style="margin-top:14px;justify-content:center">'
+    +'<button class="cfg-btn" style="background:var(--pri-light);color:var(--pri-dark)" onclick="readingLookupClose()">关闭</button>'
+    +'<button class="cfg-btn" onclick="readingAddWord(\''+r.word.replace(/'/g,"\\'")+'\')">加入每日复习</button>'
+    +'</div></div>';
+}
+function readingLookupClose(){var o=document.getElementById('rlookOv');if(o)o.remove();_rlookup=null}
+function readingAddWord(word){
+  VocabStore.fsrsRate(word,1,{meaning:(_rlookup&&_rlookup.meaning)||''});
+  readingLookupClose();
+  var t=document.createElement('div');
+  t.textContent='已加入记忆本，进入每日复习';
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--pri);color:#fff;padding:8px 18px;border-radius:20px;font-size:.8rem;z-index:600;box-shadow:0 4px 16px rgba(0,0,0,.2)';
+  document.body.appendChild(t);
+  setTimeout(function(){t.remove()},1800);
+}
+
+// ═══════════════════════════════════════
 // SEND MESSAGE
 // ═══════════════════════════════════════
 // ── 流式等待反馈（思考模型出题需 30s-2min，无反馈会被误认为「没反应」）──
@@ -2138,7 +2279,7 @@ var M={ // Mobile App Namespace
 
   // ═══════ STORE MANAGEMENT ═══════
   _loadStores:function(){
-    var agents=['grammar','exam','writing','vocabulary'];
+    var agents=['grammar','exam','writing','vocabulary','reading'];
     agents.forEach(function(a){
       try{
         var raw=localStorage.getItem('melix_'+a);
@@ -2225,8 +2366,8 @@ var M={ // Mobile App Namespace
     var sd=student==='nandy'?{name:'Nandy',av:'N',meta:'昌平区 · 六年级 · 小升初',prog:82}
       :student==='yiyi'?{name:'熠熠',av:'👧',meta:'海淀区 · 初一 · 初二提前学',prog:65}
       :{name:'选择学生',av:'M',meta:'点击切换',prog:0};
-    var agents=['grammar','exam','writing','vocabulary'];
-    var icons={grammar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L12 4l8 16H4z"/><path d="M8.5 14h5"/></svg>',exam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7V3z"/><path d="M14 3v4h4"/><path d="M10 12h6M10 16h6"/></svg>',writing:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 5.5l5 5L9 20H4v-5l9.5-9.5z"/><path d="M11.5 7.5l5 5"/></svg>',vocabulary:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5c3-1.5 6-1.5 10 0 4-1.5 7-1.5 10 0V19c-3-1.5-6-1.5-10 0-4-1.5-7-1.5-10 0V5.5z"/><path d="M12 5.5V19"/></svg>'};
+    var agents=['grammar','exam','writing','vocabulary','reading'];
+    var icons={grammar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L12 4l8 16H4z"/><path d="M8.5 14h5"/></svg>',exam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7V3z"/><path d="M14 3v4h4"/><path d="M10 12h6M10 16h6"/></svg>',writing:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 5.5l5 5L9 20H4v-5l9.5-9.5z"/><path d="M11.5 7.5l5 5"/></svg>',vocabulary:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5c3-1.5 6-1.5 10 0 4-1.5 7-1.5 10 0V19c-3-1.5-6-1.5-10 0-4-1.5-7-1.5-10 0V5.5z"/><path d="M12 5.5V19"/></svg>',reading:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>'};
     var names={grammar:'语法中心',exam:'智能组卷',writing:'作文中心',vocabulary:'词汇检测'};
     var subs={grammar:'语法讲解 · 专项练习',exam:'生成试卷 · 模拟考试',writing:'作文模板 · 批改指导',vocabulary:'语境出题 · 错词复习'};
     var counts={grammar:4,exam:2,writing:5,vocabulary:3};
@@ -2261,10 +2402,11 @@ var M={ // Mobile App Namespace
   _renderWorkspace:function(app){
     var student=M.appState.student;
     var agents=[
-      {id:'grammar',ic:'',name:'语法中心',desc:'语法讲解 · 专项练习 · 阶梯刷题'},
-      {id:'writing',ic:'',name:'作文中心',desc:'作文模板 · 智能批改 · 命题'},
-      {id:'exam',ic:'',name:'智能组卷',desc:'生成试卷 · 模拟考试 · 单元测试'},
-      {id:'vocabulary',ic:'',name:'词汇检测',desc:'语境出题 · 错词复习 · 词库管理'}
+      {id:'grammar',ic:icons.grammar,name:'语法中心',desc:'语法讲解 · 专项练习 · 阶梯刷题'},
+      {id:'writing',ic:icons.writing,name:'作文中心',desc:'作文模板 · 智能批改 · 命题'},
+      {id:'exam',ic:icons.exam,name:'智能组卷',desc:'生成试卷 · 模拟考试 · 单元测试'},
+      {id:'vocabulary',ic:icons.vocabulary,name:'词汇检测',desc:'语境出题 · 错词复习 · 词库管理'},
+      {id:'reading',ic:icons.reading,name:'精读工坊',desc:'AI 精读 · 生词一点即学 · 每日复习'}
     ];
     app.innerHTML=
       '<div class="m-ws-header">工作台</div>'+
@@ -2658,7 +2800,7 @@ var M={ // Mobile App Namespace
   },
   _clearHistory:function(){
     if(!confirm('确定清除所有会话历史吗？此操作不可撤销。'))return;
-    var agents=['grammar','exam','writing','vocabulary'];
+    var agents=['grammar','exam','writing','vocabulary','reading'];
     agents.forEach(function(a){localStorage.removeItem('melix_'+a);M.stores[a]={conversations:[],activeConvId:null,config:{}}});
     localStorage.removeItem('melix_app');M.appState={student:'',difficulty:'',teaching:{}};
     M.navigate('home');
