@@ -156,6 +156,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .load-dots span:nth-child(1){animation-delay:-.32s}.load-dots span:nth-child(2){animation-delay:-.16s}
 @keyframes ld-bounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
 
+/* ── 逐词自评 / FSRS 复习 ── */
+.vrate-ov{position:fixed;inset:0;background:rgba(23,23,23,.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
+.vrate-card{background:var(--surface);border-radius:12px;width:100%;max-width:420px;padding:26px 24px 20px;box-shadow:0 8px 40px rgba(0,0,0,.18)}
+.vrate-prog{font-size:.72rem;color:var(--text2);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.vrate-close{background:none;border:none;font-size:1rem;color:var(--text2);cursor:pointer;padding:2px 6px;font-family:inherit}
+.vrate-word{font-size:2rem;font-weight:700;text-align:center;letter-spacing:.5px}
+.vrate-meta{text-align:center;font-size:.8rem;color:var(--text2);margin-top:2px}
+.vrate-meaning{display:none;margin-top:12px;padding:10px;background:var(--input-bg);border-radius:6px;font-size:.9rem;text-align:center;line-height:1.5}
+.vrate-reveal{display:block;width:100%;margin-top:12px;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);font-size:.8rem;color:var(--text2);cursor:pointer;font-family:inherit}
+.vrate-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:18px}
+.vrate-btn{padding:10px 2px;border:none;border-radius:6px;font-size:.76rem;cursor:pointer;font-family:inherit;font-weight:600;transition:filter .15s}
+.vrate-btn:hover{filter:brightness(.95)}
+.vrate-btn.again{background:#FEE2E2;color:#DC2626}
+.vrate-btn.hard{background:#FEF3C7;color:#D97706}
+.vrate-btn.good{background:#D1FAE5;color:#059669}
+.vrate-btn.easy{background:#DBEAFE;color:#2563EB}
+.vrate-done{text-align:center;padding:8px 0 4px}
+.vrate-done-num{font-size:1.6rem;font-weight:700;color:var(--pri)}
+.vrate-due-card{display:flex;align-items:center;gap:10px;background:var(--pri-light);border:1px solid var(--pri-active-border);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:.8rem;color:var(--pri-dark)}
+
 @media(max-width:768px){:root{--nav-w:100vw}.sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;transform:translateX(-100%);transition:transform .25s}.sidebar.open{transform:translateX(0)}.sb-resizer{display:none}}
 
 /* ═══════════════════════════════════════
@@ -1036,10 +1056,12 @@ async function ensureVendor(kind){
   if(kind==='xlsx'&&window.XLSX)return true;
   if(kind==='mammoth'&&window.mammoth)return true;
   if(kind==='pdf'&&(window.pdfjsLib||window['pdfjs-dist/build/pdf']))return true;
+  if(kind==='fsrs'&&window.FSRS)return true;
   var spec={
     xlsx:{test:function(){return window.XLSX},urls:['/lib/vendor/xlsx.full.min.js','https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js','https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js']},
     mammoth:{test:function(){return window.mammoth},urls:['/lib/vendor/mammoth.browser.min.js','https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js','https://cdn.bootcdn.net/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js']},
-    pdf:{test:function(){return window.pdfjsLib||window['pdfjs-dist/build/pdf']},urls:['/lib/vendor/pdf.min.js','https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js','https://cdn.bootcdn.net/ajax/libs/pdf.js/3.11.174/pdf.min.js']}
+    pdf:{test:function(){return window.pdfjsLib||window['pdfjs-dist/build/pdf']},urls:['/lib/vendor/pdf.min.js','https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js','https://cdn.bootcdn.net/ajax/libs/pdf.js/3.11.174/pdf.min.js']},
+    fsrs:{test:function(){return window.FSRS},urls:['/lib/vendor/ts-fsrs.umd.js','https://cdn.jsdelivr.net/npm/ts-fsrs@5.4.2/dist/index.umd.js']}
   }[kind];
   if(!spec)return false;
   for(var i=0;i<spec.urls.length;i++){
@@ -1365,7 +1387,56 @@ var VocabStore={
     this.load();var arr=[];
     this._data.banks.forEach(function(b){(b.items||[]).forEach(function(it){if(it.wrongCount>0)arr.push(it);});});
     arr.sort(function(a,b){return b.wrongCount-a.wrongCount});return arr;
-  }
+  },
+  // ── FSRS 记忆调度（ts-fsrs,懒加载;item.f={s稳定性,d难度,due到期ts,r复习次数,l遗忘次数,lw上次复习ts}）──
+  fsrsRate:function(word,grade,info){
+    this.load();
+    var item=this.findItemByWord(word);
+    if(!item){
+      // 兜底:不在词库的词(如手动录入/复习卷来源),复用错词本 bank 建词
+      if(grade===1){this.recordWrong(word,{meaning:(info&&info.meaning)||'',count:1,reason:'自评'});}
+      else{this.recordWrong(word,{meaning:(info&&info.meaning)||'',count:0});}
+      item=this.findItemByWord(word);
+      if(!item)return null;
+      if(grade!==1){item.wrongCount=0;item.wrongReason='';}
+    }
+    var now=new Date();
+    var tsLib=window.FSRS;
+    if(tsLib){
+      try{
+        var card;
+        if(item.f&&item.f.s){
+          card={due:new Date(item.f.due),stability:item.f.s,difficulty:item.f.d,
+                reps:item.f.r||0,lapses:item.f.l||0,
+                state:(item.f.st!=null?item.f.st:1),
+                last_review:item.f.lw?new Date(item.f.lw):undefined,
+                learning_steps:item.f.ls||0};
+        }else{
+          card=tsLib.createEmptyCard(now);
+        }
+        var sched=new tsLib.FSRS().repeat(card,now);
+        var g=(grade>=1&&grade<=4)?grade:3;
+        var nc=sched[g]&&sched[g].card?sched[g].card:null;
+        if(nc){
+          item.f={s:nc.stability,d:nc.difficulty,due:new Date(nc.due).getTime(),
+                  r:nc.reps||((item.f&&item.f.r)||0)+1,l:nc.lapses||((item.f&&item.f.l)||0),
+                  st:nc.state,ls:nc.learning_steps||0,lw:now.getTime()};
+        }
+      }catch(e){/* FSRS 异常时降级为朴素计数,不阻断自评 */}
+    }
+    if(grade===1){item.wrongCount=(item.wrongCount||0)+1;item.wrongReason=item.wrongReason||'自评';}
+    if(grade>=3){item.mastery=(item.mastery||0)+1;}
+    item.lastReview=now.getTime();
+    this.save();
+    return item;
+  },
+  dueList:function(){
+    this.load();var now=Date.now();var arr=[];
+    this._data.banks.forEach(function(b){(b.items||[]).forEach(function(it){if(it.f&&it.f.due&&it.f.due<=now)arr.push(it);});});
+    arr.sort(function(a,b){return a.f.due-b.f.due});
+    return arr;
+  },
+  dueCount:function(){return this.dueList().length;}
 };
 var _vocabSyncTimer=null;
 // 🐛 修复：词库与会话云备份合并为一次「读-改-写」，避免两个定时器互相覆盖丢数据
@@ -1586,6 +1657,7 @@ async function applyVocabGenerate(mode){
       startNo=endNo+1;
     }
     tryImportQuizJSON();
+    state.vocab._lastTargets=r.targets;
     var _cv=curConv();if(_cv)_cv.title='词汇检测 '+count+'题'+(isReview?'（复习卷）':'');
     state.vocab.step=4;saveAll();renderVocabTab('gen');
   }catch(e){
@@ -1641,6 +1713,10 @@ function vocabPreviewTable(items){
 function vocabGenBody(){
   var step=state.vocab.step||1;
   var h='<div style="font-size:.72rem;color:var(--text2);margin-bottom:8px">步骤 '+step+'/4 · '+['上传词表','解析预览','生成设置','完成'][step-1]+'</div>';
+  var _due=0;try{_due=VocabStore.dueCount();}catch(e){}
+  if(_due>0){
+    h+='<div class="vrate-due-card"><div style="flex:1"><b>今日待复习 '+_due+' 词</b><div style="font-size:.68rem;opacity:.8">基于记忆曲线调度,先复习再学新词</div></div><button class="cfg-btn" style="padding:7px 16px;font-size:.78rem" onclick="vocabRateFromDue()">开始复习</button></div>';
+  }
   if(step===1){
     h+='<div style="border:2px dashed var(--border);border-radius:var(--radius);padding:18px;text-align:center;cursor:pointer;background:var(--input-bg)" onclick="document.getElementById(\'vocabFile\').click()">';
     h+='<div style="font-size:1.8rem"></div><div style="font-size:.82rem;font-weight:600">上传词汇表</div>';
@@ -1681,7 +1757,7 @@ function vocabGenBody(){
     h+='<div style="font-size:.68rem;color:var(--text2);margin-top:4px">60-70% 考上传词汇，30-40% 为北京K12扩展词；100 题将分 5 批生成。</div>';
   }else if(step===4){
     h+='<div style="background:#EDF5EE;border-radius:var(--radius-sm);padding:12px;font-size:.82rem">试卷已生成在下方对话区。<br>用右上角按钮导出：<b>试卷版</b>（学生用，无答案）/ <b>答案版</b> / <b>教师版</b>（含解析+考查词表+数据分析）。</div>';
-    h+='<div class="cfg-row" style="margin-top:8px"><button class="cfg-btn" style="background:var(--pri-light);color:var(--pri-dark)" onclick="vocabGotoStep(3)">再生成一份</button><button class="cfg-btn" onclick="renderVocabTab(\'wrong\')">查看错词本</button></div>';
+    h+='<div class="cfg-row" style="margin-top:8px"><button class="cfg-btn" style="background:var(--pri-light);color:var(--pri-dark)" onclick="vocabGotoStep(3)">再生成一份</button><button class="cfg-btn" style="background:var(--pri-light);color:var(--pri-dark)" onclick="renderVocabTab(\'wrong\')">查看错词本</button><button class="cfg-btn" onclick="vocabRateFromQuiz()">逐词自评（记入记忆曲线）</button></div>';
   }
   return h;
 }
@@ -1808,6 +1884,85 @@ function vocabAddWrong(){
   renderVocabTab('wrong');
 }
 function vocabClearWrong(word){VocabStore.clearWrong(word);renderVocabTab('wrong');}
+
+// ═══════════════════════════════════════
+// 逐词自评 · FSRS 记忆闭环
+// 数据源:①检测卷的机器数据(_lastQuiz.target) ②到期词(dueList)
+// 评分:1=不认识(Again) 2=模糊(Hard) 3=认识(Good) 4=秒懂(Easy)
+// ═══════════════════════════════════════
+var _rate=null;
+function vocabRateFromQuiz(){
+  var words=[],seen={};
+  (state.vocab._lastQuiz||[]).forEach(function(q){
+    if(q&&q.target&&!seen[q.target]){seen[q.target]=1;words.push({word:q.target,meaning:q.meaning||'',pos:q.pos||''});}
+  });
+  if(!words.length)(state.vocab._lastTargets||[]).forEach(function(it){
+    if(it&&it.word&&!seen[it.word]){seen[it.word]=1;words.push({word:it.word,meaning:it.meaning||'',pos:it.pos||''});}
+  });
+  if(!words.length){alert('当前会话没有试卷数据，请先生成检测试卷');return;}
+  _vocabStartRate(words,'本卷自评');
+}
+function vocabRateFromDue(){
+  var due=[];
+  try{due=VocabStore.dueList();}catch(e){}
+  if(!due.length){alert('今日没有待复习的词，继续保持');return;}
+  _vocabStartRate(due,'今日复习');
+}
+function _vocabStartRate(words,title){
+  ensureVendor('fsrs').then(function(ok){
+    if(!ok){if(!confirm('记忆引擎加载失败，将使用朴素计数（不推荐）。仍要继续吗？'))return;}
+    _rate={words:words,i:0,res:{1:0,2:0,3:0,4:0},title:title||'自评',lib:!!ok};
+    _vocabRenderRate();
+  }).catch(function(){alert('记忆引擎加载失败，请检查网络后重试');});
+}
+function _vocabRenderRate(){
+  var r=_rate;
+  if(!r)return;
+  var ov=document.getElementById('vrateOverlay');
+  if(!ov){ov=document.createElement('div');ov.id='vrateOverlay';ov.className='vrate-ov';document.body.appendChild(ov);}
+  var w=r.words[r.i];
+  if(!w){
+    var total=r.words.length,good=r.res[3]+r.res[4];
+    ov.innerHTML='<div class="vrate-card"><div class="vrate-done">'
+      +'<div style="font-size:.95rem;font-weight:700;margin-bottom:10px">'+r.title+'完成</div>'
+      +'<div class="vrate-done-num">'+good+'/'+total+'</div>'
+      +'<div style="font-size:.78rem;color:var(--text2);margin:6px 0 14px">认识 '+r.res[3]+' · 秒懂 '+r.res[4]+' · 模糊 '+r.res[2]+' · 不认识 '+r.res[1]+'</div>'
+      +(r.res[1]>0?'<div style="font-size:.75rem;color:#DC2626;margin-bottom:12px">不认识的词已自动加入错词本</div>':'')
+      +'<button class="cfg-btn" onclick="vocabRateClose()">完成</button></div></div>';
+    try{vocabCloudSync();}catch(e){}
+    try{renderVocabTab(state.vocab.tab||'gen');}catch(e){}
+    return;
+  }
+  var pct=Math.round(r.i/r.words.length*100);
+  ov.innerHTML='<div class="vrate-card">'
+    +'<div class="vrate-prog"><span>'+r.title+' · '+(r.i+1)+'/'+r.words.length+'</span><button class="vrate-close" onclick="vocabRateClose()">✕</button></div>'
+    +'<div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:16px"><div style="height:100%;background:var(--pri);width:'+pct+'%"></div></div>'
+    +'<div class="vrate-word">'+(w.word||'')+'</div>'
+    +'<div class="vrate-meta">'+(w.pos||'')+(w.phonetic?' '+w.phonetic:'')+'</div>'
+    +'<div class="vrate-meaning" id="vrateMeaning">'+(w.meaning||'（无释义）')+'</div>'
+    +'<button class="vrate-reveal" id="vrateRevealBtn" onclick="vocabRateReveal()">显示释义（先回忆再核对）</button>'
+    +'<div class="vrate-btns">'
+    +'<button class="vrate-btn again" onclick="vocabRateGrade(1)">不认识</button>'
+    +'<button class="vrate-btn hard" onclick="vocabRateGrade(2)">模糊</button>'
+    +'<button class="vrate-btn good" onclick="vocabRateGrade(3)">认识</button>'
+    +'<button class="vrate-btn easy" onclick="vocabRateGrade(4)">秒懂</button>'
+    +'</div></div>';
+}
+function vocabRateReveal(){
+  var el=document.getElementById('vrateMeaning');if(el)el.style.display='block';
+  var b=document.getElementById('vrateRevealBtn');if(b)b.style.display='none';
+}
+function vocabRateGrade(g){
+  var r=_rate;if(!r)return;
+  var w=r.words[r.i];if(!w){vocabRateClose();return;}
+  try{VocabStore.fsrsRate(w.word,g,{meaning:w.meaning||'',pos:w.pos||''});}catch(e){}
+  r.res[g]=(r.res[g]||0)+1;r.i++;
+  _vocabRenderRate();
+}
+function vocabRateClose(){
+  var ov=document.getElementById('vrateOverlay');if(ov)ov.remove();
+  _rate=null;
+}
 
 // ═══════════════════════════════════════
 // SEND MESSAGE
